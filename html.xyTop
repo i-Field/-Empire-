@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Хутор EMPIRE — Стратегія</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Russo+One&family=PT+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f5ead4;--parch:#ede0c0;--green:#2d6a2d;--lgreen:#4a9e3f;
+  --gold:#c8960c;--lgold:#f0b429;--bord:#8b1a1a;--brown:#5c3d1e;
+  --soil:#3b2510;--sun:#ffe066;--sky:#c4dff0;--hemp:#3d7a1e;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:linear-gradient(180deg,#7ec8e3 0%,#b8d4a8 30%,#dbc87a 60%,#9c7040 100%);
+  font-family:'PT Serif',serif;position:relative;display:flex;flex-direction:column;
+  max-width:430px;margin:0 auto;
+}
+
+/* ── SUN ── */
+.sun{position:fixed;top:8px;right:14px;width:48px;height:48px;
+  background:radial-gradient(circle,#fff7a0,#ffe066 40%,transparent 70%);
+  border-radius:50%;box-shadow:0 0 30px 8px rgba(255,220,80,0.45);
+  animation:sun-pulse 4s ease-in-out infinite;z-index:0;pointer-events:none;}
+@keyframes sun-pulse{0%,100%{opacity:.85}50%{opacity:1}}
+
+/* ── BIRDS ── */
+.bird{position:fixed;z-index:1;pointer-events:none;font-size:16px;
+  animation:fly linear infinite;}
+.b1{top:7%;animation-duration:14s;animation-delay:0s;}
+.b2{top:12%;animation-duration:19s;animation-delay:4s;font-size:12px;}
+.b3{top:4%;animation-duration:11s;animation-delay:8s;}
+@keyframes fly{0%{left:-40px}100%{left:calc(100% + 40px)}}
+
+/* ── LAYOUT ── */
+.app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:2;}
+
+/* ── TOP BAR ── */
+.topbar{
+  background:rgba(245,234,212,0.95);border-bottom:2px solid var(--brown);
+  padding:6px 10px;flex-shrink:0;
+}
+.topbar-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.logo-small{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:var(--green);}
+.logo-small em{color:var(--bord);font-style:italic;}
+.cycle-badge{background:var(--green);color:var(--cream);border-radius:20px;padding:3px 10px;font-size:10px;display:flex;align-items:center;gap:5px;}
+.cycle-timer{font-family:'Russo One',sans-serif;font-size:13px;color:var(--sun);}
+
+.resources{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.resources::-webkit-scrollbar{display:none;}
+.res{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.5);
+  border:1px solid var(--brown);border-radius:8px;padding:3px 7px;white-space:nowrap;flex-shrink:0;}
+.res-icon{font-size:14px;}
+.res-val{font-family:'Russo One',sans-serif;font-size:12px;color:var(--soil);}
+.res-label{font-size:9px;color:var(--brown);}
+
+/* ── GRID ── */
+.grid-wrap{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:6px;}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:100%;}
+.tile{
+  aspect-ratio:1;border-radius:8px;border:2px solid rgba(92,61,30,0.4);
+  background:rgba(245,234,212,0.6);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;position:relative;
+  transition:all 0.15s;overflow:hidden;
+}
+.tile:active{transform:scale(0.93);}
+.tile.empty{background:rgba(200,220,170,0.4);border-style:dashed;}
+.tile.empty:active{background:rgba(200,220,170,0.7);}
+.tile.selected{border:2px solid var(--lgold);box-shadow:0 0 0 2px var(--lgold);}
+.tile-icon{font-size:26px;line-height:1;}
+.tile-name{font-size:7px;color:var(--soil);text-align:center;line-height:1.1;margin-top:1px;max-width:100%;padding:0 2px;}
+.tile-lvl{position:absolute;top:2px;right:3px;font-size:8px;color:var(--gold);font-family:'Russo One',sans-serif;}
+.tile-prod{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--green);font-weight:bold;}
+
+/* Building type colors */
+.tile.farm{background:rgba(180,230,150,0.6);}
+.tile.factory{background:rgba(200,185,150,0.7);}
+.tile.pharma{background:rgba(200,230,220,0.6);}
+.tile.energy{background:rgba(255,240,150,0.6);}
+.tile.market{background:rgba(245,210,150,0.7);}
+.tile.house{background:rgba(220,200,180,0.7);}
+.tile.lab{background:rgba(190,200,240,0.6);}
+.tile.seed{background:rgba(100,180,80,0.5);}
+
+/* Pulse on production */
+@keyframes prod-pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+.tile.producing{animation:prod-pulse 0.4s ease;}
+
+/* Float number */
+.float-n{position:fixed;pointer-events:none;z-index:999;font-family:'Russo One',sans-serif;
+  font-size:16px;color:var(--green);text-shadow:0 1px 3px rgba(0,0,0,0.3);
+  animation:fn-up 1s ease-out forwards;}
+@keyframes fn-up{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+
+/* ── BOTTOM PANEL ── */
+.bottom-panel{
+  background:rgba(245,234,212,0.97);border-top:2px solid var(--brown);
+  flex-shrink:0;max-height:48vh;overflow:hidden;display:flex;flex-direction:column;
+}
+.panel-tabs{display:flex;border-bottom:1px solid rgba(92,61,30,0.3);}
+.ptab{flex:1;padding:7px 4px;text-align:center;font-size:10px;color:var(--brown);
+  cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;}
+.ptab.active{background:var(--green);color:var(--cream);font-weight:bold;}
+.panel-content{overflow-y:auto;flex:1;padding:8px;}
+
+/* Build grid */
+.build-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.build-card{background:var(--parch);border:2px solid var(--brown);border-radius:10px;
+  padding:8px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.build-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--lgreen);border-radius:3px 0 0 3px;}
+.build-card.can-build{border-color:var(--lgreen);}
+.build-card.can-build::before{background:var(--lgold);}
+.build-card.locked{opacity:0.4;pointer-events:none;}
+.build-card:active{transform:scale(0.97);}
+.bc-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.bc-icon{font-size:22px;}
+.bc-name{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--soil);}
+.bc-desc{font-size:9px;color:var(--brown);line-height:1.3;margin-bottom:4px;}
+.bc-cost{font-size:10px;color:var(--gold);font-family:'Russo One',sans-serif;}
+.bc-chain{font-size:8px;color:var(--green);margin-top:2px;}
+
+/* Info panel */
+.info-box{background:var(--parch);border:2px solid var(--brown);border-radius:10px;padding:10px;}
+.info-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--soil);margin-bottom:6px;}
+.info-chain{font-size:11px;color:var(--brown);line-height:1.6;margin-bottom:8px;}
+.info-chain strong{color:var(--green);}
+.info-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
+.ibtn{padding:8px;border-radius:8px;font-family:'PT Serif',serif;font-size:11px;cursor:pointer;border:2px solid;text-align:center;transition:all 0.2s;}
+.ibtn:active{transform:scale(0.97);}
+.ibtn-upgrade{background:rgba(74,158,63,0.15);border-color:var(--lgreen);color:var(--green);}
+.ibtn-demolish{background:rgba(139,26,26,0.1);border-color:var(--bord);color:var(--bord);}
+
+/* Stats panel */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.stat-c{background:var(--parch);border:2px solid var(--brown);border-radius:10px;padding:8px 10px;}
+.stat-c-label{font-size:9px;color:var(--brown);letter-spacing:1px;text-transform:uppercase;}
+.stat-c-val{font-family:'Russo One',sans-serif;font-size:18px;color:var(--green);margin-top:2px;}
+.stat-c-val.gold{color:var(--gold);}
+
+/* Hemp seeds special */
+.seed-panel{background:linear-gradient(135deg,#2d6a2d,#1a4a1a);border-radius:12px;padding:12px;color:var(--cream);margin-bottom:8px;}
+.seed-panel-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--lgold);margin-bottom:6px;}
+.seed-rare{display:flex;gap:6px;flex-wrap:wrap;}
+.seed-item{background:rgba(255,255,255,0.1);border:1px solid rgba(255,215,100,0.4);
+  border-radius:8px;padding:4px 8px;font-size:11px;display:flex;align-items:center;gap:4px;}
+.seed-rarity{font-size:8px;color:var(--lgold);}
+
+/* Stars section */
+.stars-strip{background:linear-gradient(135deg,var(--bord),#5c0f0f);
+  border-top:2px solid var(--gold);padding:10px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.stars-text{flex:1;font-size:10px;color:rgba(255,220,150,0.9);line-height:1.4;}
+.stars-text strong{color:var(--lgold);display:block;font-family:'Playfair Display',serif;font-size:12px;}
+.stars-btn{background:linear-gradient(135deg,var(--lgold),var(--gold));border:1px solid var(--sun);
+  border-radius:8px;padding:8px 14px;color:var(--soil);font-family:'Russo One',sans-serif;
+  font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+
+/* Notif */
+.notif{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--soil);border:2px solid var(--gold);border-radius:10px;
+  padding:8px 18px;font-size:11px;color:var(--cream);z-index:9999;
+  transition:transform 0.3s;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.4);}
+.notif.show{transform:translateX(-50%) translateY(0);}
+
+/* Chain legend */
+.chain-legend{background:rgba(255,255,255,0.3);border-radius:8px;padding:8px;margin-bottom:8px;font-size:9px;color:var(--soil);line-height:1.7;}
+.cl{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.ca{color:var(--gold);font-size:11px;}
+</style>
+</head>
+<body>
+
+<div class="sun"></div>
+<div class="bird b1">🐦</div>
+<div class="bird b2">🕊️</div>
+<div class="bird b3">🦜</div>
+<div class="notif" id="notif"></div>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-row1">
+      <div class="logo-small"><em>Хутор</em> EMPIRE</div>
+      <div class="cycle-badge">
+        🔄 Цикл: <span class="cycle-timer" id="cycleTimer">5</span>с
+      </div>
+    </div>
+    <div class="resources" id="resBar"></div>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid-wrap">
+    <div class="grid" id="cityGrid"></div>
+  </div>
+
+  <!-- BOTTOM PANEL -->
+  <div class="bottom-panel">
+    <div class="panel-tabs">
+      <div class="ptab active" onclick="switchPanel('build')">🏗️ Будувати</div>
+      <div class="ptab" onclick="switchPanel('info')">📍 Інфо</div>
+      <div class="ptab" onclick="switchPanel('seeds')">🌿 Насіння</div>
+      <div class="ptab" onclick="switchPanel('stats')">📊 Місто</div>
+    </div>
+    <div class="panel-content">
+      <!-- BUILD -->
+      <div id="panel-build">
+        <div class="chain-legend">
+          <div class="cl">🌿 Конопля <span class="ca">→</span> 🧵 Волокно <span class="ca">→</span> Канати · Тканина · Пластик</div>
+          <div class="cl">🌿 Конопля <span class="ca">→</span> 🫗 Олія <span class="ca">→</span> 💊 Ліки · 🎨 Фарба · 🪣 Лак</div>
+          <div class="cl">🌺 Мак <span class="ca">→</span> 💊 Фарма · 🍞 Їжа <span class="ca">→</span> 👥 Населення <span class="ca">→</span> 💰 Терра</div>
+        </div>
+        <div class="build-grid" id="buildGrid"></div>
+      </div>
+      <!-- INFO -->
+      <div id="panel-info" style="display:none">
+        <div id="infoContent"><div style="text-align:center;color:var(--brown);font-style:italic;margin-top:20px;">Натисни на клітинку міста</div></div>
+      </div>
+      <!-- SEEDS -->
+      <div id="panel-seeds" style="display:none">
+        <div class="seed-panel">
+          <div class="seed-panel-title">🌿 Колекція Насіння</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Рідкісне насіння — майбутні NFT на TON блокчейні</div>
+          <div class="seed-rare" id="seedCollection"></div>
+        </div>
+        <div class="chain-legend" style="margin-top:0;">
+          <strong style="color:var(--soil);font-family:'Playfair Display',serif;display:block;margin-bottom:4px;">Виробничий ланцюжок конопель:</strong>
+          <div class="cl">🌱 Насіння <span class="ca">→</span> 🌿 Конопляна ферма (10 сек)</div>
+          <div class="cl">🌿 Волокно <span class="ca">→</span> 🧵 Канати (+5💰) · 👕 Тканина (+8💰)</div>
+          <div class="cl">🫗 Олія <span class="ca">→</span> 💊 Знеболення (+12💰) · 🎨 Фарба (+6💰) · 🪣 Лак (+7💰)</div>
+          <div class="cl">🌿 Макуха <span class="ca">→</span> 🍞 Протеїн · 🐄 Корм для тварин</div>
+          <div class="cl">🌿 Стебло <span class="ca">→</span> 🏗️ Конопляний бетон · 🛢️ Біопластик</div>
+        </div>
+      </div>
+      <!-- STATS -->
+      <div id="panel-stats" style="display:none">
+        <div class="stats-grid" id="statsGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STARS STRIP -->
+  <div class="stars-strip">
+    <div class="stars-text">
+      <strong>⭐ Зоряний Буст</strong>
+      +200 Терра · ×2 виробництво · 60 сек
+    </div>
+    <button class="stars-btn" onclick="buyStars()">50 ⭐</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  BUILDINGS DEFINITIONS
+// ═══════════════════════════════════════════════
+const BUILDINGS = {
+  hemp_farm: {
+    name:'Конопляна ферма', icon:'🌿', cls:'farm',
+    cost:{terra:10}, produces:{seeds:3, fiber:0},
+    consumes:{}, perCycle:'+3🌱',
+    desc:'Вирощує технічну коноплю. Основа всього виробництва.',
+    chain:'Конопля → Насіння → Волокно → Олія',
+    unlockAt:0
+  },
+  poppy_field: {
+    name:'Макове поле', icon:'🌺', cls:'farm',
+    cost:{terra:15}, produces:{medicine_base:1, food:1},
+    consumes:{}, perCycle:'+1💊+1🍞',
+    desc:'Харчовий і фармацевтичний мак.',
+    chain:'Мак → Ліки · Їжа · Олія',
+    unlockAt:0
+  },
+  press: {
+    name:'Прес-завод', icon:'⚙️', cls:'factory',
+    cost:{terra:35, seeds:5}, produces:{fiber:2, oil:1},
+    consumes:{seeds:3}, perCycle:'+2🧵+1🫗',
+    desc:'Пресує коноплю у волокно та олію.',
+    chain:'Насіння → Волокно + Олія',
+    unlockAt:1
+  },
+  rope_works: {
+    name:'Канатний цех', icon:'🧵', cls:'factory',
+    cost:{terra:50, fiber:3}, produces:{terra:6},
+    consumes:{fiber:1}, perCycle:'+6💰',
+    desc:'Виготовляє морські канати та мотузки.',
+    chain:'Волокно → Канати → Терра',
+    unlockAt:1
+  },
+  oil_press: {
+    name:'Олієпресовий цех', icon:'🫗', cls:'factory',
+    cost:{terra:60, seeds:10}, produces:{oil:2},
+    consumes:{seeds:4}, perCycle:'+2🫗',
+    desc:'Холодне пресування конопляної олії.',
+    chain:'Насіння → Олія (їжа·фарма·косметика)',
+    unlockAt:2
+  },
+  pharma: {
+    name:'Фармацевтика', icon:'💊', cls:'pharma',
+    cost:{terra:120, oil:3}, produces:{terra:12},
+    consumes:{oil:1, medicine_base:1}, perCycle:'+12💰',
+    desc:'Виробляє знеболюючі та CBD препарати.',
+    chain:'Олія + Мак → Ліки → Терра',
+    unlockAt:3
+  },
+  paint_works: {
+    name:'Фарбовий завод', icon:'🎨', cls:'factory',
+    cost:{terra:80, oil:2}, produces:{terra:7},
+    consumes:{oil:1}, perCycle:'+7💰',
+    desc:'Натуральні фарби на конопляній олії.',
+    chain:'Олія → Фарба → Терра',
+    unlockAt:2
+  },
+  varnish: {
+    name:'Лакувальня', icon:'🪣', cls:'factory',
+    cost:{terra:90, oil:2}, produces:{terra:8},
+    consumes:{oil:1}, perCycle:'+8💰',
+    desc:'Конопляні лаки та просочення.',
+    chain:'Олія → Лак → Терра',
+    unlockAt:2
+  },
+  mill: {
+    name:'Млин', icon:'⚗️', cls:'factory',
+    cost:{terra:40, seeds:5}, produces:{food:3},
+    consumes:{seeds:2}, perCycle:'+3🍞',
+    desc:'Перемелює насіння на борошно та протеїн.',
+    chain:'Насіння → Їжа → Населення',
+    unlockAt:1
+  },
+  solar: {
+    name:'Сонячна панель', icon:'☀️', cls:'energy',
+    cost:{terra:70}, produces:{energy:2},
+    consumes:{}, perCycle:'+2⚡',
+    desc:'Зелена енергія прискорює виробництво.',
+    chain:'Сонце → Енергія → ×1.5 до всього',
+    unlockAt:1
+  },
+  market: {
+    name:'Ринок', icon:'🏪', cls:'market',
+    cost:{terra:100}, produces:{terra:5},
+    consumes:{food:1}, perCycle:'+5💰',
+    desc:'Торгівля продукцією з населенням.',
+    chain:'Продукція → Ринок → Терра',
+    unlockAt:2
+  },
+  house: {
+    name:'Оселя', icon:'🏠', cls:'house',
+    cost:{terra:30, food:3}, produces:{population:1},
+    consumes:{food:1}, perCycle:'+1👥',
+    desc:'Жителі генерують пасивний дохід.',
+    chain:'Їжа → Населення → Терра/цикл',
+    unlockAt:1
+  },
+  lab: {
+    name:'Науковий центр', icon:'🔬', cls:'lab',
+    cost:{terra:200}, produces:{},
+    consumes:{energy:1}, perCycle:'🔓 Апгрейди',
+    desc:'Розблоковує нові технології та будівлі.',
+    chain:'Енергія → Дослідження → Апгрейди',
+    unlockAt:3
+  },
+  textile: {
+    name:'Текстильний цех', icon:'👕', cls:'factory',
+    cost:{terra:150, fiber:10}, produces:{terra:15},
+    consumes:{fiber:2}, perCycle:'+15💰',
+    desc:'Конопляна тканина та одяг. Бум ринку!',
+    chain:'Волокно → Тканина → Терра',
+    unlockAt:4
+  },
+  bioplastic: {
+    name:'Біо-пластик', icon:'🛢️', cls:'factory',
+    cost:{terra:180, fiber:8, oil:5}, produces:{terra:18},
+    consumes:{fiber:2, oil:1}, perCycle:'+18💰',
+    desc:'Конопляний біопластик — майбутнє матеріалів.',
+    chain:'Волокно+Олія → Пластик → Терра',
+    unlockAt:4
+  },
+  seed_bank: {
+    name:'Банк насіння', icon:'🫙', cls:'seed',
+    cost:{terra:250}, produces:{rare_seed:0.2},
+    consumes:{seeds:5}, perCycle:'🌟 Рідк.насіння',
+    desc:'Зберігає та виводить рідкісні сорти. Майбутні NFT!',
+    chain:'Насіння → Рідкісні сорти → NFT',
+    unlockAt:5
+  }
+};
+
+// ═══════════════════════════════════════════════
+//  RARE SEEDS (NFT candidates)
+// ═══════════════════════════════════════════════
+const RARE_SEEDS = [
+  {id:'terra_og',   name:'Terra OG',        icon:'🌿', rarity:'Звичайне',  color:'#4a9e3f'},
+  {id:'golden_hemp',name:'Golden Hemp',     icon:'🌟', rarity:'Рідкісне',  color:'#c8960c'},
+  {id:'sky_bloom',  name:'Sky Bloom',       icon:'💫', rarity:'Епічне',    color:'#6b4aad'},
+  {id:'solar_kush', name:'Solar Kush',      icon:'☀️', rarity:'Легендарне',color:'#c8600c'},
+  {id:'ice_crystal',name:'Ice Crystal',    icon:'❄️', rarity:'Унікальне', color:'#2a7aad'},
+];
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let state = {
+  terra: 50, seeds: 20, fiber: 0, oil: 0,
+  food: 5, population: 2, energy: 0, medicine_base: 0,
+  totalTerra: 50, cycles: 0, buildCount: 0,
+  boostActive: false, boostEnd: 0,
+  grid: Array(20).fill(null), // 5×4
+  selectedTile: null,
+  seeds_collected: [],
+  labs: 0,
+  stats: { produced: 0, built: 0 }
+};
+
+const GRID_COLS = 5, GRID_ROWS = 4;
+const tg = window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+
+// Pre-place starting buildings
+state.grid[12] = {type:'hemp_farm', level:1};
+state.grid[7]  = {type:'mill', level:1};
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function fmt(n){
+  if(n>=1e6)return(n/1e6).toFixed(1)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+  return Math.floor(n)+'';
+}
+function showNotif(msg){
+  const el=document.getElementById('notif');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2500);
+}
+function spawnFloat(x,y,txt,color='var(--green)'){
+  const el=document.createElement('div');
+  el.className='float-n';el.textContent=txt;
+  el.style.cssText=`left:${x-20}px;top:${y-30}px;color:${color}`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1000);
+}
+function unlockLevel(){
+  // unlock level based on buildings placed
+  return Math.floor(state.buildCount/2);
+}
+
+// ═══════════════════════════════════════════════
+//  RESOURCE BAR
+// ═══════════════════════════════════════════════
+const RES_DEFS=[
+  {key:'terra',icon:'💰',label:'Терра'},
+  {key:'seeds',icon:'🌱',label:'Насіння'},
+  {key:'fiber',icon:'🧵',label:'Волокно'},
+  {key:'oil',icon:'🫗',label:'Олія'},
+  {key:'food',icon:'🍞',label:'Їжа'},
+  {key:'population',icon:'👥',label:'Люди'},
+  {key:'energy',icon:'⚡',label:'Енергія'},
+];
+function renderResBar(){
+  const bar=document.getElementById('resBar');
+  bar.innerHTML=RES_DEFS.map(r=>`
+    <div class="res">
+      <span class="res-icon">${r.icon}</span>
+      <div>
+        <div class="res-val">${fmt(state[r.key]||0)}</div>
+        <div class="res-label">${r.label}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  GRID RENDER
+// ═══════════════════════════════════════════════
+function renderGrid(){
+  const grid=document.getElementById('cityGrid');
+  grid.innerHTML='';
+  for(let i=0;i<GRID_COLS*GRID_ROWS;i++){
+    const b=state.grid[i];
+    const div=document.createElement('div');
+    div.className='tile'+(b?' '+BUILDINGS[b.type].cls:' empty');
+    if(state.selectedTile===i)div.classList.add('selected');
+    if(b){
+      const bd=BUILDINGS[b.type];
+      div.innerHTML=`
+        <div class="tile-icon">${bd.icon}</div>
+        <div class="tile-name">${bd.name}</div>
+        <div class="tile-lvl">Lv${b.level}</div>
+        <div class="tile-prod">${bd.perCycle}</div>`;
+    } else {
+      div.innerHTML=`<div style="font-size:22px;opacity:0.3">＋</div>`;
+    }
+    div.onclick=()=>selectTile(i);
+    grid.appendChild(div);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  SELECT TILE
+// ═══════════════════════════════════════════════
+function selectTile(i){
+  state.selectedTile=i;
+  renderGrid();
+  if(state.grid[i]){
+    switchPanel('info');
+    renderInfo(i);
+  } else {
+    switchPanel('build');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  BUILD PANEL
+// ═══════════════════════════════════════════════
+function renderBuildGrid(){
+  const lvl=unlockLevel();
+  const bg=document.getElementById('buildGrid');
+  bg.innerHTML='';
+  Object.entries(BUILDINGS).forEach(([key,bd])=>{
+    const locked=bd.unlockAt>lvl;
+    const canBuild=!locked&&canAfford(bd.cost);
+    const div=document.createElement('div');
+    div.className='build-card'+(locked?' locked':canBuild?' can-build':'');
+    div.innerHTML=`
+      <div class="bc-top">
+        <span class="bc-icon">${bd.icon}</span>
+        <span class="bc-name">${bd.name}</span>
+      </div>
+      <div class="bc-desc">${bd.desc}</div>
+      <div class="bc-chain">⛓ ${bd.chain}</div>
+      <div class="bc-cost">${fmtCost(bd.cost)}${locked?` 🔒 Потр.Lv${bd.unlockAt}`:''}</div>`;
+    if(!locked)div.onclick=()=>buildOn(state.selectedTile,key);
+    bg.appendChild(div);
+  });
+}
+function fmtCost(cost){
+  return Object.entries(cost).map(([k,v])=>{
+    const icons={terra:'💰',seeds:'🌱',fiber:'🧵',oil:'🫗',food:'🍞'};
+    return `${icons[k]||k}${v}`;
+  }).join(' ');
+}
+function canAfford(cost){
+  return Object.entries(cost).every(([k,v])=>(state[k]||0)>=v);
+}
+
+// ═══════════════════════════════════════════════
+//  BUILD
+// ═══════════════════════════════════════════════
+function buildOn(tileIdx, buildingKey){
+  if(tileIdx===null||state.grid[tileIdx])return;
+  const bd=BUILDINGS[buildingKey];
+  if(!canAfford(bd.cost)){showNotif('⚠ Не вистачає ресурсів!');return;}
+  Object.entries(bd.cost).forEach(([k,v])=>state[k]-=v);
+  state.grid[tileIdx]={type:buildingKey,level:1};
+  state.buildCount++;
+  if(buildingKey==='lab')state.labs++;
+  showNotif('✅ '+bd.name+' збудовано!');
+  // random seed drop on build
+  if(Math.random()<0.15) dropRareSeed();
+  renderGrid();
+  renderBuildGrid();
+  renderResBar();
+}
+
+// ═══════════════════════════════════════════════
+//  INFO PANEL
+// ═══════════════════════════════════════════════
+function renderInfo(tileIdx){
+  const b=state.grid[tileIdx];
+  if(!b){document.getElementById('infoContent').innerHTML='<div style="text-align:center;color:var(--brown);font-style:italic;padding:20px">Порожня клітинка — обери будівлю</div>';return;}
+  const bd=BUILDINGS[b.type];
+  const upgCost=Math.floor(50*Math.pow(2,b.level-1));
+  const canUpg=state.terra>=upgCost&&b.level<3;
+  document.getElementById('infoContent').innerHTML=`
+    <div class="info-box">
+      <div class="info-title">${bd.icon} ${bd.name} · Lv${b.level}</div>
+      <div class="info-chain">
+        <strong>Виробництво за цикл:</strong> ${bd.perCycle}<br>
+        <strong>Ланцюжок:</strong> ${bd.chain}<br>
+        ${Object.keys(bd.consumes).length?`<strong>Споживає:</strong> ${fmtCost(bd.consumes)}/цикл`:''}
+      </div>
+      <div class="info-btns">
+        <button class="ibtn ibtn-upgrade" onclick="upgradeBuilding(${tileIdx})" ${canUpg?'':'disabled'}>
+          ⬆ Апгрейд · 💰${upgCost}
+        </button>
+        <button class="ibtn ibtn-demolish" onclick="demolish(${tileIdx})">
+          🗑 Знести
+        </button>
+      </div>
+    </div>`;
+}
+function upgradeBuilding(tileIdx){
+  const b=state.grid[tileIdx];
+  const cost=Math.floor(50*Math.pow(2,b.level-1));
+  if(state.terra<cost){showNotif('⚠ Потрібно '+cost+' 💰');return;}
+  if(b.level>=3){showNotif('Максимальний рівень!');return;}
+  state.terra-=cost;
+  b.level++;
+  showNotif('⬆ Апгрейд до Lv'+b.level+'!');
+  renderGrid();renderResBar();renderInfo(tileIdx);
+}
+function demolish(tileIdx){
+  const b=state.grid[tileIdx];
+  const refund=Math.floor(BUILDINGS[b.type].cost.terra*0.5);
+  state.terra+=refund;
+  if(b.type==='lab')state.labs=Math.max(0,state.labs-1);
+  state.grid[tileIdx]=null;
+  state.selectedTile=null;
+  showNotif('🗑 Знесено · +'+refund+'💰 повернуто');
+  renderGrid();renderResBar();
+  switchPanel('build');
+}
+
+// ═══════════════════════════════════════════════
+//  SEEDS PANEL
+// ═══════════════════════════════════════════════
+function dropRareSeed(){
+  const seed=RARE_SEEDS[Math.floor(Math.random()*RARE_SEEDS.length)];
+  if(!state.seeds_collected.find(s=>s.id===seed.id)){
+    state.seeds_collected.push({...seed, count:1});
+  } else {
+    state.seeds_collected.find(s=>s.id===seed.id).count++;
+  }
+  showNotif('🌟 Рідкісне насіння: '+seed.name+'!');
+}
+function renderSeedsPanel(){
+  const el=document.getElementById('seedCollection');
+  if(!state.seeds_collected.length){
+    el.innerHTML='<div style="color:rgba(255,255,255,0.5);font-size:11px;font-style:italic;">Побудуй Банк насіння або нові будівлі щоб отримати рідкісне насіння 🌱</div>';
+    return;
+  }
+  el.innerHTML=state.seeds_collected.map(s=>`
+    <div class="seed-item">
+      <span>${s.icon}</span>
+      <div>
+        <div style="font-size:11px;color:var(--cream)">${s.name} ×${s.count}</div>
+        <div class="seed-rarity" style="color:${s.color}">${s.rarity}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  STATS PANEL
+// ═══════════════════════════════════════════════
+function renderStats(){
+  const builtCount=state.grid.filter(Boolean).length;
+  const aps=calcAutoPerCycle();
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-c"><div class="stat-c-label">💰 Всього зароблено</div><div class="stat-c-val gold">${fmt(state.totalTerra)}</div></div>
+    <div class="stat-c"><div class="stat-c-label">🔄 Цикли</div><div class="stat-c-val">${state.cycles}</div></div>
+    <div class="stat-c"><div class="stat-c-label">🏗 Будівель</div><div class="stat-c-val">${builtCount}</div></div>
+    <div class="stat-c"><div class="stat-c-label">👥 Населення</div><div class="stat-c-val">${state.population}</div></div>
+    <div class="stat-c"><div class="stat-c-label">⚡ Терра/цикл</div><div class="stat-c-val">${fmt(aps)}</div></div>
+    <div class="stat-c"><div class="stat-c-label">🌿 Рідк.насіння</div><div class="stat-c-val">${state.seeds_collected.length}</div></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════
+//  PRODUCTION CYCLE
+// ═══════════════════════════════════════════════
+function calcAutoPerCycle(){
+  let t=0;
+  state.grid.forEach(b=>{if(!b)return;const bd=BUILDINGS[b.type];if(bd.produces.terra)t+=bd.produces.terra*b.level;});
+  t+=state.population*0.5;
+  return t;
+}
+
+function runCycle(){
+  state.cycles++;
+  const mult=state.boostActive&&Date.now()<state.boostEnd?2:1;
+  const energyBonus=state.energy>=2?1.5:1;
+
+  state.grid.forEach((b,idx)=>{
+    if(!b)return;
+    const bd=BUILDINGS[b.type];
+    const lvl=b.level;
+
+    // Check if can consume
+    const canRun=Object.entries(bd.consumes).every(([k,v])=>(state[k]||0)>=v*lvl);
+
+    if(canRun){
+      // Consume
+      Object.entries(bd.consumes).forEach(([k,v])=>state[k]=Math.max(0,(state[k]||0)-v));
+
+      // Produce
+      Object.entries(bd.produces).forEach(([k,v])=>{
+        const amount=Math.floor(v*lvl*mult*energyBonus);
+        if(k==='rare_seed'&&Math.random()<v*lvl*mult){
+          dropRareSeed();
+        } else if(k!=='rare_seed'){
+          state[k]=(state[k]||0)+amount;
+          if(k==='terra'){state.totalTerra+=amount;}
+        }
+      });
+
+      // Animate tile
+      const tileEl=document.getElementById('cityGrid')?.children[idx];
+      if(tileEl){tileEl.classList.add('producing');setTimeout(()=>tileEl.classList.remove('producing'),400);}
+    }
+  });
+
+  // Population bonus
+  if(state.population>0){
+    const popBonus=Math.floor(state.population*0.5*mult);
+    state.terra+=popBonus;
+    state.totalTerra+=popBonus;
+  }
+
+  // Clamp negatives
+  Object.keys(state).forEach(k=>{if(typeof state[k]==='number'&&state[k]<0)state[k]=0;});
+
+  // Random rare seed
+  if(Math.random()<0.05*state.grid.filter(b=>b&&b.type==='seed_bank').length){
+    dropRareSeed();
+  }
+
+  renderResBar();
+  renderStats();
+  if(document.getElementById('panel-seeds').style.display!=='none')renderSeedsPanel();
+}
+
+// ═══════════════════════════════════════════════
+//  CYCLE TIMER
+// ═══════════════════════════════════════════════
+const CYCLE_SEC=5;
+let countdown=CYCLE_SEC;
+setInterval(()=>{
+  countdown--;
+  document.getElementById('cycleTimer').textContent=countdown;
+  if(countdown<=0){
+    countdown=CYCLE_SEC;
+    runCycle();
+  }
+},1000);
+
+// ═══════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════
+const PANELS=['build','info','seeds','stats'];
+function switchPanel(name){
+  document.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('active',PANELS[i]===name));
+  PANELS.forEach(p=>{document.getElementById('panel-'+p).style.display=p===name?'':'none';});
+  if(name==='build')renderBuildGrid();
+  if(name==='seeds')renderSeedsPanel();
+  if(name==='stats')renderStats();
+}
+
+// ═══════════════════════════════════════════════
+//  STARS
+// ═══════════════════════════════════════════════
+function buyStars(){
+  if(!tg||!tg.openInvoice){activateBoost();return;}
+  tg.openInvoice({
+    title:'Зоряний Буст',description:'+200 Терра + ×2 виробництво 60 сек',
+    payload:'city_boost',provider_token:'',currency:'XTR',
+    prices:[{label:'Зоряний Буст',amount:50}]
+  },s=>{if(s==='paid')activateBoost();});
+}
+function activateBoost(){
+  state.terra+=200;state.totalTerra+=200;
+  state.boostActive=true;state.boostEnd=Date.now()+60000;
+  showNotif('⭐ БУСТ АКТИВОВАНО — 60 СЕК ×2!');
+  setTimeout(()=>{state.boostActive=false;showNotif('⏰ Буст завершено');},60000);
+  renderResBar();
+}
+
+// ═══════════════════════════════════════════════
+//  SAVE / LOAD
+// ═══════════════════════════════════════════════
+function save(){
+  try{
+    localStorage.setItem('khutor_city',JSON.stringify({
+      terra:state.terra,seeds:state.seeds,fiber:state.fiber,oil:state.oil,
+      food:state.food,population:state.population,energy:state.energy,
+      medicine_base:state.medicine_base,totalTerra:state.totalTerra,
+      cycles:state.cycles,buildCount:state.buildCount,
+      grid:state.grid,seeds_collected:state.seeds_collected,labs:state.labs
+    }));
+  }catch(e){}
+}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('khutor_city')||'null');
+    if(!d)return;
+    Object.assign(state,d);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+load();
+renderGrid();
+renderResBar();
+renderBuildGrid();
+renderStats();
+setInterval(save,10000);
+</script>
+</body>
+</html>
