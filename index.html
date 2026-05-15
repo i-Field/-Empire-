@@ -3,798 +3,1004 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Хутор EMPIRE — Стратегія</title>
+<title>Хутор EMPIRE</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Russo+One&family=PT+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900&family=Russo+One&display=swap" rel="stylesheet">
 <style>
-:root{
-  --cream:#f5ead4;--parch:#ede0c0;--green:#2d6a2d;--lgreen:#4a9e3f;
-  --gold:#c8960c;--lgold:#f0b429;--bord:#8b1a1a;--brown:#5c3d1e;
-  --soil:#3b2510;--sun:#ffe066;--sky:#c4dff0;--hemp:#3d7a1e;
-}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;}
-body{
-  background:linear-gradient(180deg,#7ec8e3 0%,#b8d4a8 30%,#dbc87a 60%,#9c7040 100%);
-  font-family:'PT Serif',serif;position:relative;display:flex;flex-direction:column;
-  max-width:430px;margin:0 auto;
-}
-
-/* ── SUN ── */
-.sun{position:fixed;top:8px;right:14px;width:48px;height:48px;
-  background:radial-gradient(circle,#fff7a0,#ffe066 40%,transparent 70%);
-  border-radius:50%;box-shadow:0 0 30px 8px rgba(255,220,80,0.45);
-  animation:sun-pulse 4s ease-in-out infinite;z-index:0;pointer-events:none;}
-@keyframes sun-pulse{0%,100%{opacity:.85}50%{opacity:1}}
-
-/* ── BIRDS ── */
-.bird{position:fixed;z-index:1;pointer-events:none;font-size:16px;
-  animation:fly linear infinite;}
-.b1{top:7%;animation-duration:14s;animation-delay:0s;}
-.b2{top:12%;animation-duration:19s;animation-delay:4s;font-size:12px;}
-.b3{top:4%;animation-duration:11s;animation-delay:8s;}
-@keyframes fly{0%{left:-40px}100%{left:calc(100% + 40px)}}
-
-/* ── LAYOUT ── */
-.app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:2;}
-
-/* ── TOP BAR ── */
-.topbar{
-  background:rgba(245,234,212,0.95);border-bottom:2px solid var(--brown);
-  padding:6px 10px;flex-shrink:0;
-}
-.topbar-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
-.logo-small{font-family:'Playfair Display',serif;font-size:16px;font-weight:900;color:var(--green);}
-.logo-small em{color:var(--bord);font-style:italic;}
-.cycle-badge{background:var(--green);color:var(--cream);border-radius:20px;padding:3px 10px;font-size:10px;display:flex;align-items:center;gap:5px;}
-.cycle-timer{font-family:'Russo One',sans-serif;font-size:13px;color:var(--sun);}
-
-.resources{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
-.resources::-webkit-scrollbar{display:none;}
-.res{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.5);
-  border:1px solid var(--brown);border-radius:8px;padding:3px 7px;white-space:nowrap;flex-shrink:0;}
-.res-icon{font-size:14px;}
-.res-val{font-family:'Russo One',sans-serif;font-size:12px;color:var(--soil);}
-.res-label{font-size:9px;color:var(--brown);}
-
-/* ── GRID ── */
-.grid-wrap{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:6px;}
-.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:100%;}
-.tile{
-  aspect-ratio:1;border-radius:8px;border:2px solid rgba(92,61,30,0.4);
-  background:rgba(245,234,212,0.6);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;cursor:pointer;position:relative;
-  transition:all 0.15s;overflow:hidden;
-}
-.tile:active{transform:scale(0.93);}
-.tile.empty{background:rgba(200,220,170,0.4);border-style:dashed;}
-.tile.empty:active{background:rgba(200,220,170,0.7);}
-.tile.selected{border:2px solid var(--lgold);box-shadow:0 0 0 2px var(--lgold);}
-.tile-icon{font-size:26px;line-height:1;}
-.tile-name{font-size:7px;color:var(--soil);text-align:center;line-height:1.1;margin-top:1px;max-width:100%;padding:0 2px;}
-.tile-lvl{position:absolute;top:2px;right:3px;font-size:8px;color:var(--gold);font-family:'Russo One',sans-serif;}
-.tile-prod{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--green);font-weight:bold;}
-
-/* Building type colors */
-.tile.farm{background:rgba(180,230,150,0.6);}
-.tile.factory{background:rgba(200,185,150,0.7);}
-.tile.pharma{background:rgba(200,230,220,0.6);}
-.tile.energy{background:rgba(255,240,150,0.6);}
-.tile.market{background:rgba(245,210,150,0.7);}
-.tile.house{background:rgba(220,200,180,0.7);}
-.tile.lab{background:rgba(190,200,240,0.6);}
-.tile.seed{background:rgba(100,180,80,0.5);}
-
-/* Pulse on production */
-@keyframes prod-pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
-.tile.producing{animation:prod-pulse 0.4s ease;}
-
-/* Float number */
-.float-n{position:fixed;pointer-events:none;z-index:999;font-family:'Russo One',sans-serif;
-  font-size:16px;color:var(--green);text-shadow:0 1px 3px rgba(0,0,0,0.3);
-  animation:fn-up 1s ease-out forwards;}
-@keyframes fn-up{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
-
-/* ── BOTTOM PANEL ── */
-.bottom-panel{
-  background:rgba(245,234,212,0.97);border-top:2px solid var(--brown);
-  flex-shrink:0;max-height:48vh;overflow:hidden;display:flex;flex-direction:column;
-}
-.panel-tabs{display:flex;border-bottom:1px solid rgba(92,61,30,0.3);}
-.ptab{flex:1;padding:7px 4px;text-align:center;font-size:10px;color:var(--brown);
-  cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;}
-.ptab.active{background:var(--green);color:var(--cream);font-weight:bold;}
-.panel-content{overflow-y:auto;flex:1;padding:8px;}
-
-/* Build grid */
-.build-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
-.build-card{background:var(--parch);border:2px solid var(--brown);border-radius:10px;
-  padding:8px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
-.build-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--lgreen);border-radius:3px 0 0 3px;}
-.build-card.can-build{border-color:var(--lgreen);}
-.build-card.can-build::before{background:var(--lgold);}
-.build-card.locked{opacity:0.4;pointer-events:none;}
-.build-card:active{transform:scale(0.97);}
-.bc-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
-.bc-icon{font-size:22px;}
-.bc-name{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--soil);}
-.bc-desc{font-size:9px;color:var(--brown);line-height:1.3;margin-bottom:4px;}
-.bc-cost{font-size:10px;color:var(--gold);font-family:'Russo One',sans-serif;}
-.bc-chain{font-size:8px;color:var(--green);margin-top:2px;}
-
-/* Info panel */
-.info-box{background:var(--parch);border:2px solid var(--brown);border-radius:10px;padding:10px;}
-.info-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--soil);margin-bottom:6px;}
-.info-chain{font-size:11px;color:var(--brown);line-height:1.6;margin-bottom:8px;}
-.info-chain strong{color:var(--green);}
-.info-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
-.ibtn{padding:8px;border-radius:8px;font-family:'PT Serif',serif;font-size:11px;cursor:pointer;border:2px solid;text-align:center;transition:all 0.2s;}
-.ibtn:active{transform:scale(0.97);}
-.ibtn-upgrade{background:rgba(74,158,63,0.15);border-color:var(--lgreen);color:var(--green);}
-.ibtn-demolish{background:rgba(139,26,26,0.1);border-color:var(--bord);color:var(--bord);}
-
-/* Stats panel */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.stat-c{background:var(--parch);border:2px solid var(--brown);border-radius:10px;padding:8px 10px;}
-.stat-c-label{font-size:9px;color:var(--brown);letter-spacing:1px;text-transform:uppercase;}
-.stat-c-val{font-family:'Russo One',sans-serif;font-size:18px;color:var(--green);margin-top:2px;}
-.stat-c-val.gold{color:var(--gold);}
-
-/* Hemp seeds special */
-.seed-panel{background:linear-gradient(135deg,#2d6a2d,#1a4a1a);border-radius:12px;padding:12px;color:var(--cream);margin-bottom:8px;}
-.seed-panel-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--lgold);margin-bottom:6px;}
-.seed-rare{display:flex;gap:6px;flex-wrap:wrap;}
-.seed-item{background:rgba(255,255,255,0.1);border:1px solid rgba(255,215,100,0.4);
-  border-radius:8px;padding:4px 8px;font-size:11px;display:flex;align-items:center;gap:4px;}
-.seed-rarity{font-size:8px;color:var(--lgold);}
-
-/* Stars section */
-.stars-strip{background:linear-gradient(135deg,var(--bord),#5c0f0f);
-  border-top:2px solid var(--gold);padding:10px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.stars-text{flex:1;font-size:10px;color:rgba(255,220,150,0.9);line-height:1.4;}
-.stars-text strong{color:var(--lgold);display:block;font-family:'Playfair Display',serif;font-size:12px;}
-.stars-btn{background:linear-gradient(135deg,var(--lgold),var(--gold));border:1px solid var(--sun);
-  border-radius:8px;padding:8px 14px;color:var(--soil);font-family:'Russo One',sans-serif;
-  font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-
-/* Notif */
-.notif{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-80px);
-  background:var(--soil);border:2px solid var(--gold);border-radius:10px;
-  padding:8px 18px;font-size:11px;color:var(--cream);z-index:9999;
-  transition:transform 0.3s;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.4);}
+html,body{height:100%;overflow:hidden;background:#000;max-width:430px;margin:0 auto;}
+body{display:flex;flex-direction:column;}
+.app{display:flex;flex-direction:column;height:100vh;}
+canvas{display:block;}
+#panoCanvas{width:100%;flex-shrink:0;}
+.topbar{background:rgba(8,5,0,0.97);border-bottom:2px solid rgba(140,100,30,0.6);padding:4px 8px 5px;flex-shrink:0;}
+.tb1{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.logo{font-family:'Playfair Display',serif;font-size:15px;font-weight:900;color:#90c840;}
+.logo em{color:#e8a020;font-style:italic;}
+.topinfo{display:flex;align-items:center;gap:6px;}
+.cpill{background:rgba(30,60,5,0.9);border:1px solid rgba(80,150,20,0.5);border-radius:18px;padding:2px 8px;display:flex;align-items:center;gap:3px;}
+.cnum{font-family:'Russo One',sans-serif;font-size:13px;color:#ffe040;}
+.dayinfo{font-size:9px;color:rgba(200,160,50,0.7);font-family:'Russo One',sans-serif;}
+.rbar{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;}
+.rbar::-webkit-scrollbar{display:none;}
+.rc{display:flex;align-items:center;gap:2px;flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid rgba(180,140,60,0.25);border-radius:14px;padding:2px 6px;}
+.ri{font-size:11px;}.rv{font-family:'Russo One',sans-serif;font-size:10px;color:#d0b860;}
+.gwrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:#000;}
+#gameCanvas{cursor:pointer;}
+.bottom{background:rgba(8,4,0,0.98);border-top:2px solid rgba(140,100,30,0.5);flex-shrink:0;display:flex;flex-direction:column;max-height:40vh;}
+.btabs{display:flex;border-bottom:1px solid rgba(180,140,60,0.15);}
+.btab{flex:1;padding:5px 2px;text-align:center;font-size:8px;color:rgba(180,140,60,0.45);cursor:pointer;transition:all 0.15s;}
+.btab .bi{display:block;font-size:11px;margin-bottom:1px;}
+.btab.active{background:rgba(40,80,5,0.7);color:#90c030;border-bottom:2px solid #60a020;}
+.bc{overflow-y:auto;flex:1;padding:6px;}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.bcard{background:rgba(255,255,255,0.035);border:1px solid rgba(180,140,60,0.2);border-radius:7px;padding:5px 6px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;}
+.bcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#4a8a18;border-radius:3px 0 0 3px;}
+.bcard.ok{border-color:rgba(80,160,20,0.45);background:rgba(30,60,5,0.2);}
+.bcard.ok::before{background:#d09018;}
+.bcard.no{opacity:0.28;pointer-events:none;}
+.bcard:active{transform:scale(0.96);}
+.bct{display:flex;align-items:center;gap:4px;margin-bottom:2px;}
+.bci{font-size:15px;}.bcn{font-family:'Playfair Display',serif;font-size:10px;font-weight:700;color:#c8b060;}
+.bcd{font-size:8px;color:rgba(180,140,60,0.6);margin-bottom:2px;line-height:1.3;}
+.bcc{font-size:7px;color:#70b020;margin-bottom:2px;}.bcco{font-size:9px;font-family:'Russo One',sans-serif;color:#d09020;}
+.ibox{background:rgba(255,255,255,0.04);border:1px solid rgba(180,140,60,0.2);border-radius:8px;padding:8px;}
+.it{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#c8b060;margin-bottom:5px;}
+.ir{font-size:9px;color:rgba(180,140,60,0.7);margin-bottom:3px;}.ir strong{color:#70b020;}
+.ibtns{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;}
+.ibtn{padding:6px;border-radius:7px;font-size:9px;cursor:pointer;border:1px solid;text-align:center;}
+.ibtn-u{background:rgba(40,80,5,0.25);border-color:#4a8a18;color:#70b030;}
+.ibtn-d{background:rgba(80,10,10,0.25);border-color:#6a1010;color:#c05050;}
+.cv{background:rgba(255,255,255,0.03);border:1px solid rgba(180,140,60,0.15);border-radius:8px;padding:6px;margin-bottom:5px;}
+.cvt{font-family:'Playfair Display',serif;font-size:11px;font-weight:700;color:#90c030;margin-bottom:4px;}
+.cvr{display:flex;align-items:center;gap:3px;flex-wrap:wrap;margin-bottom:3px;font-size:8px;color:rgba(180,140,60,0.65);}
+.cva{color:#d09020;font-size:10px;font-weight:bold;}.cvn{background:rgba(40,80,5,0.25);border:1px solid rgba(70,130,20,0.35);border-radius:4px;padding:1px 4px;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.sbox{background:rgba(255,255,255,0.04);border:1px solid rgba(180,140,60,0.18);border-radius:8px;padding:7px 9px;}
+.sbl{font-size:8px;color:rgba(180,140,60,0.45);text-transform:uppercase;letter-spacing:1px;}
+.sbv{font-family:'Russo One',sans-serif;font-size:18px;color:#70b020;margin-top:1px;}.sbv.g{color:#d09020;}
+.sbar{background:rgba(50,5,5,0.95);border-top:1px solid rgba(200,140,30,0.25);padding:6px 8px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.sbt{flex:1;font-size:8px;color:rgba(230,170,70,0.75);line-height:1.4;}
+.sbt strong{color:#d09020;font-family:'Playfair Display',serif;font-size:11px;display:block;}
+.sbb{background:linear-gradient(135deg,#d09020,#906010);border:1px solid #e0b020;border-radius:7px;padding:6px 10px;color:#100600;font-family:'Russo One',sans-serif;font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.notif{position:fixed;top:10px;left:50%;z-index:9999;transform:translateX(-50%) translateY(-70px);background:rgba(10,5,0,0.97);border:2px solid #d09020;border-radius:9px;padding:6px 14px;font-size:10px;color:#c8a860;transition:transform 0.3s;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,0.8);}
 .notif.show{transform:translateX(-50%) translateY(0);}
-
-/* Chain legend */
-.chain-legend{background:rgba(255,255,255,0.3);border-radius:8px;padding:8px;margin-bottom:8px;font-size:9px;color:var(--soil);line-height:1.7;}
-.cl{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
-.ca{color:var(--gold);font-size:11px;}
 </style>
 </head>
 <body>
-
-<div class="sun"></div>
-<div class="bird b1">🐦</div>
-<div class="bird b2">🕊️</div>
-<div class="bird b3">🦜</div>
-<div class="notif" id="notif"></div>
-
 <div class="app">
-
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <div class="topbar-row1">
-      <div class="logo-small"><em>Хутор</em> EMPIRE</div>
-      <div class="cycle-badge">
-        🔄 Цикл: <span class="cycle-timer" id="cycleTimer">5</span>с
-      </div>
-    </div>
-    <div class="resources" id="resBar"></div>
-  </div>
-
-  <!-- GRID -->
-  <div class="grid-wrap">
-    <div class="grid" id="cityGrid"></div>
-  </div>
-
-  <!-- BOTTOM PANEL -->
-  <div class="bottom-panel">
-    <div class="panel-tabs">
-      <div class="ptab active" onclick="switchPanel('build')">🏗️ Будувати</div>
-      <div class="ptab" onclick="switchPanel('info')">📍 Інфо</div>
-      <div class="ptab" onclick="switchPanel('seeds')">🌿 Насіння</div>
-      <div class="ptab" onclick="switchPanel('stats')">📊 Місто</div>
-    </div>
-    <div class="panel-content">
-      <!-- BUILD -->
-      <div id="panel-build">
-        <div class="chain-legend">
-          <div class="cl">🌿 Конопля <span class="ca">→</span> 🧵 Волокно <span class="ca">→</span> Канати · Тканина · Пластик</div>
-          <div class="cl">🌿 Конопля <span class="ca">→</span> 🫗 Олія <span class="ca">→</span> 💊 Ліки · 🎨 Фарба · 🪣 Лак</div>
-          <div class="cl">🌺 Мак <span class="ca">→</span> 💊 Фарма · 🍞 Їжа <span class="ca">→</span> 👥 Населення <span class="ca">→</span> 💰 Терра</div>
-        </div>
-        <div class="build-grid" id="buildGrid"></div>
-      </div>
-      <!-- INFO -->
-      <div id="panel-info" style="display:none">
-        <div id="infoContent"><div style="text-align:center;color:var(--brown);font-style:italic;margin-top:20px;">Натисни на клітинку міста</div></div>
-      </div>
-      <!-- SEEDS -->
-      <div id="panel-seeds" style="display:none">
-        <div class="seed-panel">
-          <div class="seed-panel-title">🌿 Колекція Насіння</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Рідкісне насіння — майбутні NFT на TON блокчейні</div>
-          <div class="seed-rare" id="seedCollection"></div>
-        </div>
-        <div class="chain-legend" style="margin-top:0;">
-          <strong style="color:var(--soil);font-family:'Playfair Display',serif;display:block;margin-bottom:4px;">Виробничий ланцюжок конопель:</strong>
-          <div class="cl">🌱 Насіння <span class="ca">→</span> 🌿 Конопляна ферма (10 сек)</div>
-          <div class="cl">🌿 Волокно <span class="ca">→</span> 🧵 Канати (+5💰) · 👕 Тканина (+8💰)</div>
-          <div class="cl">🫗 Олія <span class="ca">→</span> 💊 Знеболення (+12💰) · 🎨 Фарба (+6💰) · 🪣 Лак (+7💰)</div>
-          <div class="cl">🌿 Макуха <span class="ca">→</span> 🍞 Протеїн · 🐄 Корм для тварин</div>
-          <div class="cl">🌿 Стебло <span class="ca">→</span> 🏗️ Конопляний бетон · 🛢️ Біопластик</div>
-        </div>
-      </div>
-      <!-- STATS -->
-      <div id="panel-stats" style="display:none">
-        <div class="stats-grid" id="statsGrid"></div>
-      </div>
+<canvas id="panoCanvas" height="100"></canvas>
+<div class="topbar">
+  <div class="tb1">
+    <div class="logo">🌿 <em>Хутор</em> EMPIRE</div>
+    <div class="topinfo">
+      <div class="dayinfo" id="dayInfo">🌅 РАНОК</div>
+      <div class="cpill"><span style="font-size:8px;color:rgba(255,255,255,0.4)">цикл</span><span class="cnum" id="ct">5</span></div>
     </div>
   </div>
-
-  <!-- STARS STRIP -->
-  <div class="stars-strip">
-    <div class="stars-text">
-      <strong>⭐ Зоряний Буст</strong>
-      +200 Терра · ×2 виробництво · 60 сек
-    </div>
-    <button class="stars-btn" onclick="buyStars()">50 ⭐</button>
+  <div class="rbar" id="rbar"></div>
+</div>
+<div class="gwrap"><canvas id="gameCanvas"></canvas></div>
+<div class="bottom">
+  <div class="btabs">
+    <div class="btab active" onclick="sp('build')"><span class="bi">🏗️</span>Будувати</div>
+    <div class="btab" onclick="sp('info')"><span class="bi">📍</span>Будівля</div>
+    <div class="btab" onclick="sp('chain')"><span class="bi">⛓️</span>Ланцюг</div>
+    <div class="btab" onclick="sp('seeds')"><span class="bi">🌿</span>Насіння</div>
+    <div class="btab" onclick="sp('stats')"><span class="bi">📊</span>Місто</div>
+  </div>
+  <div class="bc">
+    <div id="panel-build"><div class="bgrid" id="bgrid"></div></div>
+    <div id="panel-info" style="display:none"><div id="icontent"><p style="text-align:center;color:rgba(180,140,60,0.35);padding:18px 0;font-style:italic;font-size:10px">Натисни на будівлю</p></div></div>
+    <div id="panel-chain" style="display:none"></div>
+    <div id="panel-seeds" style="display:none"><div id="scontent"></div></div>
+    <div id="panel-stats" style="display:none"><div class="sgrid" id="sgrid"></div></div>
   </div>
 </div>
-
+<div class="sbar">
+  <div class="sbt"><strong>⭐ ЗОРЯНИЙ БУСТ</strong>+200💰 · ×2 виробництво · 60 сек</div>
+  <button class="sbb" onclick="buyStars()">50 ⭐</button>
+</div>
+</div>
+<div class="notif" id="notif"></div>
 <script>
-// ═══════════════════════════════════════════════
-//  BUILDINGS DEFINITIONS
-// ═══════════════════════════════════════════════
-const BUILDINGS = {
-  hemp_farm: {
-    name:'Конопляна ферма', icon:'🌿', cls:'farm',
-    cost:{terra:10}, produces:{seeds:3, fiber:0},
-    consumes:{}, perCycle:'+3🌱',
-    desc:'Вирощує технічну коноплю. Основа всього виробництва.',
-    chain:'Конопля → Насіння → Волокно → Олія',
-    unlockAt:0
-  },
-  poppy_field: {
-    name:'Макове поле', icon:'🌺', cls:'farm',
-    cost:{terra:15}, produces:{medicine_base:1, food:1},
-    consumes:{}, perCycle:'+1💊+1🍞',
-    desc:'Харчовий і фармацевтичний мак.',
-    chain:'Мак → Ліки · Їжа · Олія',
-    unlockAt:0
-  },
-  press: {
-    name:'Прес-завод', icon:'⚙️', cls:'factory',
-    cost:{terra:35, seeds:5}, produces:{fiber:2, oil:1},
-    consumes:{seeds:3}, perCycle:'+2🧵+1🫗',
-    desc:'Пресує коноплю у волокно та олію.',
-    chain:'Насіння → Волокно + Олія',
-    unlockAt:1
-  },
-  rope_works: {
-    name:'Канатний цех', icon:'🧵', cls:'factory',
-    cost:{terra:50, fiber:3}, produces:{terra:6},
-    consumes:{fiber:1}, perCycle:'+6💰',
-    desc:'Виготовляє морські канати та мотузки.',
-    chain:'Волокно → Канати → Терра',
-    unlockAt:1
-  },
-  oil_press: {
-    name:'Олієпресовий цех', icon:'🫗', cls:'factory',
-    cost:{terra:60, seeds:10}, produces:{oil:2},
-    consumes:{seeds:4}, perCycle:'+2🫗',
-    desc:'Холодне пресування конопляної олії.',
-    chain:'Насіння → Олія (їжа·фарма·косметика)',
-    unlockAt:2
-  },
-  pharma: {
-    name:'Фармацевтика', icon:'💊', cls:'pharma',
-    cost:{terra:120, oil:3}, produces:{terra:12},
-    consumes:{oil:1, medicine_base:1}, perCycle:'+12💰',
-    desc:'Виробляє знеболюючі та CBD препарати.',
-    chain:'Олія + Мак → Ліки → Терра',
-    unlockAt:3
-  },
-  paint_works: {
-    name:'Фарбовий завод', icon:'🎨', cls:'factory',
-    cost:{terra:80, oil:2}, produces:{terra:7},
-    consumes:{oil:1}, perCycle:'+7💰',
-    desc:'Натуральні фарби на конопляній олії.',
-    chain:'Олія → Фарба → Терра',
-    unlockAt:2
-  },
-  varnish: {
-    name:'Лакувальня', icon:'🪣', cls:'factory',
-    cost:{terra:90, oil:2}, produces:{terra:8},
-    consumes:{oil:1}, perCycle:'+8💰',
-    desc:'Конопляні лаки та просочення.',
-    chain:'Олія → Лак → Терра',
-    unlockAt:2
-  },
-  mill: {
-    name:'Млин', icon:'⚗️', cls:'factory',
-    cost:{terra:40, seeds:5}, produces:{food:3},
-    consumes:{seeds:2}, perCycle:'+3🍞',
-    desc:'Перемелює насіння на борошно та протеїн.',
-    chain:'Насіння → Їжа → Населення',
-    unlockAt:1
-  },
-  solar: {
-    name:'Сонячна панель', icon:'☀️', cls:'energy',
-    cost:{terra:70}, produces:{energy:2},
-    consumes:{}, perCycle:'+2⚡',
-    desc:'Зелена енергія прискорює виробництво.',
-    chain:'Сонце → Енергія → ×1.5 до всього',
-    unlockAt:1
-  },
-  market: {
-    name:'Ринок', icon:'🏪', cls:'market',
-    cost:{terra:100}, produces:{terra:5},
-    consumes:{food:1}, perCycle:'+5💰',
-    desc:'Торгівля продукцією з населенням.',
-    chain:'Продукція → Ринок → Терра',
-    unlockAt:2
-  },
-  house: {
-    name:'Оселя', icon:'🏠', cls:'house',
-    cost:{terra:30, food:3}, produces:{population:1},
-    consumes:{food:1}, perCycle:'+1👥',
-    desc:'Жителі генерують пасивний дохід.',
-    chain:'Їжа → Населення → Терра/цикл',
-    unlockAt:1
-  },
-  lab: {
-    name:'Науковий центр', icon:'🔬', cls:'lab',
-    cost:{terra:200}, produces:{},
-    consumes:{energy:1}, perCycle:'🔓 Апгрейди',
-    desc:'Розблоковує нові технології та будівлі.',
-    chain:'Енергія → Дослідження → Апгрейди',
-    unlockAt:3
-  },
-  textile: {
-    name:'Текстильний цех', icon:'👕', cls:'factory',
-    cost:{terra:150, fiber:10}, produces:{terra:15},
-    consumes:{fiber:2}, perCycle:'+15💰',
-    desc:'Конопляна тканина та одяг. Бум ринку!',
-    chain:'Волокно → Тканина → Терра',
-    unlockAt:4
-  },
-  bioplastic: {
-    name:'Біо-пластик', icon:'🛢️', cls:'factory',
-    cost:{terra:180, fiber:8, oil:5}, produces:{terra:18},
-    consumes:{fiber:2, oil:1}, perCycle:'+18💰',
-    desc:'Конопляний біопластик — майбутнє матеріалів.',
-    chain:'Волокно+Олія → Пластик → Терра',
-    unlockAt:4
-  },
-  seed_bank: {
-    name:'Банк насіння', icon:'🫙', cls:'seed',
-    cost:{terra:250}, produces:{rare_seed:0.2},
-    consumes:{seeds:5}, perCycle:'🌟 Рідк.насіння',
-    desc:'Зберігає та виводить рідкісні сорти. Майбутні NFT!',
-    chain:'Насіння → Рідкісні сорти → NFT',
-    unlockAt:5
-  }
-};
+// ═══════════ CANVAS SETUP ═══════════
+const pano=document.getElementById('panoCanvas'),pc=pano.getContext('2d');
+const game=document.getElementById('gameCanvas'),gc=game.getContext('2d');
+const COLS=5,ROWS=4;let TW=76;
+function resize(){
+  const aw=Math.min(window.innerWidth,430);
+  TW=Math.floor(aw/COLS);
+  game.width=COLS*TW;game.height=ROWS*TW;
+  pano.width=aw;
+}
+resize();
 
-// ═══════════════════════════════════════════════
-//  RARE SEEDS (NFT candidates)
-// ═══════════════════════════════════════════════
-const RARE_SEEDS = [
-  {id:'terra_og',   name:'Terra OG',        icon:'🌿', rarity:'Звичайне',  color:'#4a9e3f'},
-  {id:'golden_hemp',name:'Golden Hemp',     icon:'🌟', rarity:'Рідкісне',  color:'#c8960c'},
-  {id:'sky_bloom',  name:'Sky Bloom',       icon:'💫', rarity:'Епічне',    color:'#6b4aad'},
-  {id:'solar_kush', name:'Solar Kush',      icon:'☀️', rarity:'Легендарне',color:'#c8600c'},
-  {id:'ice_crystal',name:'Ice Crystal',    icon:'❄️', rarity:'Унікальне', color:'#2a7aad'},
+// ═══════════ WORLD TIME & WEATHER ═══════════
+// gameTime: 0=midnight, 0.25=dawn, 0.5=noon, 0.75=dusk
+// Cycle: 90 seconds = full day
+const DAY_CYCLE=90000;
+function getGameTime(){return(Date.now()%DAY_CYCLE)/DAY_CYCLE;}
+function isNight(){const t=getGameTime();return t<0.2||t>0.8;}
+function getNightFactor(){
+  const t=getGameTime();
+  if(t<0.15||t>0.85)return 1;
+  if(t<0.25)return 1-(t-0.15)/0.1;
+  if(t>0.75)return(t-0.75)/0.1;
+  return 0;
+}
+
+const SEASONS=['spring','summer','autumn','winter'];
+let seasonIdx=1,season='summer';
+setInterval(()=>{seasonIdx=(seasonIdx+1)%4;season=SEASONS[seasonIdx];notify('🍂 Сезон: '+{spring:'Весна',summer:'Літо',autumn:'Осінь',winter:'Зима'}[season]+'!');},60000);
+
+let weather='clear';
+const WEATHERS=['clear','clear','clear','rain','fog','clear'];
+setInterval(()=>{weather=WEATHERS[Math.floor(Math.random()*WEATHERS.length)];},25000);
+
+// ═══════════ ANIMATION OBJECTS ═══════════
+const fireflies=Array.from({length:22},()=>({
+  x:Math.random()*400,y:50+Math.random()*280,
+  ph:Math.random()*Math.PI*2,spx:(Math.random()-.5)*.4,spy:(Math.random()-.5)*.25,
+}));
+
+const raindrops=Array.from({length:90},()=>({
+  x:Math.random()*450,y:Math.random()*380,
+  sp:3.5+Math.random()*3.5,len:5+Math.random()*9,
+}));
+
+const fogBlobs=Array.from({length:6},()=>({
+  x:Math.random()*450,y:160+Math.random()*220,
+  w:90+Math.random()*160,h:30+Math.random()*40,
+  sp:.18+Math.random()*.22,op:.12+Math.random()*.18,
+}));
+
+const drones=[
+  {x:40,y:30,tx:200,ty:25,sp:0.7,led:0},
+  {x:350,y:50,tx:100,ty:35,sp:0.5,led:Math.PI},
 ];
 
-// ═══════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════
-let state = {
-  terra: 50, seeds: 20, fiber: 0, oil: 0,
-  food: 5, population: 2, energy: 0, medicine_base: 0,
-  totalTerra: 50, cycles: 0, buildCount: 0,
-  boostActive: false, boostEnd: 0,
-  grid: Array(20).fill(null), // 5×4
-  selectedTile: null,
-  seeds_collected: [],
-  labs: 0,
-  stats: { produced: 0, built: 0 }
-};
-
-const GRID_COLS = 5, GRID_ROWS = 4;
-const tg = window.Telegram?.WebApp;
-if(tg){tg.ready();tg.expand();}
-
-// Pre-place starting buildings
-state.grid[12] = {type:'hemp_farm', level:1};
-state.grid[7]  = {type:'mill', level:1};
-
-// ═══════════════════════════════════════════════
-//  HELPERS
-// ═══════════════════════════════════════════════
-function fmt(n){
-  if(n>=1e6)return(n/1e6).toFixed(1)+'M';
-  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
-  return Math.floor(n)+'';
-}
-function showNotif(msg){
-  const el=document.getElementById('notif');
-  el.textContent=msg;el.classList.add('show');
-  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2500);
-}
-function spawnFloat(x,y,txt,color='var(--green)'){
-  const el=document.createElement('div');
-  el.className='float-n';el.textContent=txt;
-  el.style.cssText=`left:${x-20}px;top:${y-30}px;color:${color}`;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),1000);
-}
-function unlockLevel(){
-  // unlock level based on buildings placed
-  return Math.floor(state.buildCount/2);
-}
-
-// ═══════════════════════════════════════════════
-//  RESOURCE BAR
-// ═══════════════════════════════════════════════
-const RES_DEFS=[
-  {key:'terra',icon:'💰',label:'Терра'},
-  {key:'seeds',icon:'🌱',label:'Насіння'},
-  {key:'fiber',icon:'🧵',label:'Волокно'},
-  {key:'oil',icon:'🫗',label:'Олія'},
-  {key:'food',icon:'🍞',label:'Їжа'},
-  {key:'population',icon:'👥',label:'Люди'},
-  {key:'energy',icon:'⚡',label:'Енергія'},
+const birds=[
+  {x:-50,y:26,sp:.9,wing:0},{x:-160,y:18,sp:.55,wing:1.8},{x:-300,y:34,sp:1.1,wing:3.4},
 ];
-function renderResBar(){
-  const bar=document.getElementById('resBar');
-  bar.innerHTML=RES_DEFS.map(r=>`
-    <div class="res">
-      <span class="res-icon">${r.icon}</span>
-      <div>
-        <div class="res-val">${fmt(state[r.key]||0)}</div>
-        <div class="res-label">${r.label}</div>
-      </div>
-    </div>`).join('');
+const clouds=[{x:60,sp:.22},{x:250,sp:.15},{x:140,sp:.1}];
+const stars=Array.from({length:40},()=>({x:Math.random()*430,y:Math.random()*55,r:.5+Math.random(),ph:Math.random()*Math.PI*2}));
+
+let beeAngle=0;
+let frame=0;
+
+// ═══════════ BUILDINGS DATA ═══════════
+const B={
+  hemp_farm:   {n:'Конопляна ферма', i:'🌿',cost:{terra:10},  prod:{seeds:3},             cons:{},               cy:'+3🌱',ul:0,desc:'Технічна конопля.',    ch:'→ Насіння → Волокно/Олія'},
+  sunflower:   {n:'Соняшникове поле',i:'🌻',cost:{terra:20},  prod:{oil:1,food:2},        cons:{},               cy:'+1🫗+2🍞',ul:0,desc:'Олія та їжа.',   ch:'→ Олія · Їжа'},
+  corn_field:  {n:'Кукурудзяне поле',i:'🌽',cost:{terra:18},  prod:{food:4},              cons:{},               cy:'+4🍞',ul:0,desc:'Їжа для населення.',  ch:'→ Їжа → Населення'},
+  poppy:       {n:'Макове поле',     i:'🌺',cost:{terra:15},  prod:{medicine_base:1},     cons:{},               cy:'+1💊',ul:0,desc:'Фармацевтичний мак.', ch:'→ Ліки'},
+  beehive:     {n:'Пасіка',         i:'🐝',cost:{terra:25},  prod:{terra:4,food:1},      cons:{},               cy:'+4💰+1🍞',ul:0,desc:'Мед та запилення.',ch:'→ Терра · Їжа'},
+  greenhouse:  {n:'Теплиця',        i:'🪴',cost:{terra:45,seeds:5},prod:{food:3,seeds:2},cons:{energy:1},       cy:'+3🍞+2🌱',ul:1,desc:'Цілорічне вирощування.',ch:'Енергія → Їжа+Насіння'},
+  press:       {n:'Прес-завод',     i:'⚙️',cost:{terra:35,seeds:5},prod:{fiber:2,oil:1}, cons:{seeds:3},        cy:'+2🧵+1🫗',ul:1,desc:'Насіння → волокно.',ch:'Насіння → Волокно+Олія'},
+  mill:        {n:'Вітряний млин',  i:'⚗️',cost:{terra:40,seeds:5},prod:{food:3},        cons:{seeds:2},        cy:'+3🍞',ul:1,desc:'Борошно та протеїн.',  ch:'Насіння → Їжа'},
+  rope:        {n:'Канатний цех',   i:'🧵',cost:{terra:50,fiber:3},prod:{terra:6},       cons:{fiber:1},        cy:'+6💰',ul:1,desc:'Морські канати.',       ch:'Волокно → Терра'},
+  solar:       {n:'Сонячна панель', i:'☀️',cost:{terra:70},   prod:{energy:2},            cons:{},               cy:'+2⚡',ul:1,desc:'Зелена енергія.',      ch:'→ Енергія'},
+  house:       {n:'Оселя',          i:'🏠',cost:{terra:30,food:3},prod:{population:1},   cons:{food:1},         cy:'+1👥',ul:1,desc:'Жителі — дохід.',      ch:'Їжа → Населення'},
+  oil_press:   {n:'Олієпресовий цех',i:'🫗',cost:{terra:60,seeds:10},prod:{oil:2},       cons:{seeds:4},        cy:'+2🫗',ul:2,desc:'Холодне пресування.',  ch:'Насіння → Олія'},
+  paint:       {n:'Фарбовий завод', i:'🎨',cost:{terra:80,oil:2},prod:{terra:7},         cons:{oil:1},          cy:'+7💰',ul:2,desc:'Натуральні фарби.',     ch:'Олія → Терра'},
+  market:      {n:'Ринок',          i:'🏪',cost:{terra:100},  prod:{terra:5},             cons:{food:1},         cy:'+5💰',ul:2,desc:'Торгівля.',            ch:'→ Терра'},
+  pharma:      {n:'Фармацевтика',   i:'💊',cost:{terra:120,oil:3},prod:{terra:12},       cons:{oil:1,medicine_base:1},cy:'+12💰',ul:3,desc:'CBD та ліки.',ch:'Олія+Мак → Терра'},
+  textile:     {n:'Текстильний цех',i:'👕',cost:{terra:150,fiber:10},prod:{terra:15},    cons:{fiber:2},        cy:'+15💰',ul:4,desc:'Конопляна тканина.',   ch:'Волокно → Терра'},
+  bioplastic:  {n:'Біо-пластик',    i:'🛢️',cost:{terra:180,fiber:8,oil:5},prod:{terra:18},cons:{fiber:2,oil:1},cy:'+18💰',ul:4,desc:'Біопластик.',          ch:'Волокно+Олія → Терра'},
+  lab:         {n:'Науковий центр', i:'🔬',cost:{terra:200},  prod:{},                    cons:{energy:1},       cy:'🔓',ul:3,desc:'Технології.',           ch:'Енергія → Апгрейди'},
+  seed_bank:   {n:'Банк насіння',   i:'🫙',cost:{terra:250},  prod:{rare_seed:.2},        cons:{seeds:5},        cy:'🌟NFT',ul:5,desc:'Рідкісне насіння!',  ch:'→ NFT на TON'},
+};
+const RARE=[
+  {id:'terra_og',n:'Terra OG',i:'🌿',r:'Звичайне',c:'#4a9e3f'},
+  {id:'golden_hemp',n:'Golden Hemp',i:'✨',r:'Рідкісне',c:'#c8960c'},
+  {id:'sky_bloom',n:'Sky Bloom',i:'💫',r:'Епічне',c:'#7a4acc'},
+  {id:'solar_kush',n:'Solar Kush',i:'☀️',r:'Легендарне',c:'#c8500c'},
+  {id:'ice_crystal',n:'Ice Crystal',i:'❄️',r:'Унікальне',c:'#2080c0'},
+];
+const RICONS={terra:'💰',seeds:'🌱',fiber:'🧵',oil:'🫗',food:'🍞',population:'👥',energy:'⚡',medicine_base:'💊'};
+const RD=[{k:'terra',i:'💰'},{k:'seeds',i:'🌱'},{k:'fiber',i:'🧵'},{k:'oil',i:'🫗'},{k:'food',i:'🍞'},{k:'population',i:'👥'},{k:'energy',i:'⚡'}];
+
+// ═══════════ GAME STATE ═══════════
+let S={
+  terra:50,seeds:20,fiber:0,oil:0,food:8,population:2,energy:0,medicine_base:0,
+  totalTerra:50,cycles:0,built:0,boost:false,boostEnd:0,
+  grid:Array(20).fill(null),sel:null,rareSeeds:[],
+};
+S.grid[12]={t:'hemp_farm',lv:1};
+S.grid[7]={t:'mill',lv:1};
+S.grid[2]={t:'sunflower',lv:1};
+S.grid[17]={t:'beehive',lv:1};
+
+const tgApp=window.Telegram?.WebApp;
+if(tgApp){tgApp.ready();tgApp.expand();}
+
+// ═══════════ HELPERS ═══════════
+function fmt(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.floor(n)+'';}
+function fmtCost(c){return Object.entries(c).map(([k,v])=>`${RICONS[k]||k}${v}`).join(' ');}
+function canAfford(c){return Object.entries(c).every(([k,v])=>(S[k]||0)>=v);}
+function ulv(){return Math.floor(S.built/2);}
+function notify(m){const el=document.getElementById('notif');el.textContent=m;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2500);}
+
+// Season tints
+function seasonGreen(){return{spring:'#60e030',summer:'#40b020',autumn:'#b08010',winter:'#607060'}[season];}
+function seasonGround(){return{spring:'#3a6a18',summer:'#2a5010',autumn:'#6a4a10',winter:'#506070'}[season];}
+function seasonGround2(){return{spring:'#5a9030',summer:'#4a7a20',autumn:'#8a6020',winter:'#708090'}[season];}
+
+// ═══════════ DRAW HELPERS ═══════════
+function gnd(ctx,x,y,w,h){
+  const g=ctx.createLinearGradient(x,y,x,y+h);
+  g.addColorStop(0,seasonGround2());g.addColorStop(1,seasonGround());
+  ctx.fillStyle=g;ctx.fillRect(x,y,w,h);
 }
 
-// ═══════════════════════════════════════════════
-//  GRID RENDER
-// ═══════════════════════════════════════════════
-function renderGrid(){
-  const grid=document.getElementById('cityGrid');
-  grid.innerHTML='';
-  for(let i=0;i<GRID_COLS*GRID_ROWS;i++){
-    const b=state.grid[i];
-    const div=document.createElement('div');
-    div.className='tile'+(b?' '+BUILDINGS[b.type].cls:' empty');
-    if(state.selectedTile===i)div.classList.add('selected');
-    if(b){
-      const bd=BUILDINGS[b.type];
-      div.innerHTML=`
-        <div class="tile-icon">${bd.icon}</div>
-        <div class="tile-name">${bd.name}</div>
-        <div class="tile-lvl">Lv${b.level}</div>
-        <div class="tile-prod">${bd.perCycle}</div>`;
-    } else {
-      div.innerHTML=`<div style="font-size:22px;opacity:0.3">＋</div>`;
-    }
-    div.onclick=()=>selectTile(i);
-    grid.appendChild(div);
+// Snow overlay for winter
+function drawSnow(ctx,x,y,w,h){
+  if(season!=='winter')return;
+  ctx.fillStyle='rgba(220,235,255,0.25)';ctx.fillRect(x,y,w,h);
+}
+
+// ═══════════ PLANT DRAW FUNCTIONS ═══════════
+function drawHempLeaf(ctx,cx,cy,sz,angle,col){
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);ctx.fillStyle=col;
+  for(let f=0;f<5;f++){
+    const fa=(f-2)*0.42;const fl=sz*(f===2?1:.68);
+    ctx.save();ctx.rotate(fa);
+    ctx.beginPath();ctx.moveTo(0,0);
+    ctx.bezierCurveTo(-sz*.11,-fl*.35,-sz*.09,-fl*.82,0,-fl);
+    ctx.bezierCurveTo(sz*.09,-fl*.82,sz*.11,-fl*.35,0,0);
+    ctx.fill();ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawHempPlant(ctx,cx,baseY,h,f){
+  const sw=Math.sin(f*.025+cx)*(weather==='rain'?4:2.5);
+  const sg=seasonGreen();
+  ctx.strokeStyle='#2a7a18';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(cx,baseY);ctx.lineTo(cx+sw,baseY-h);ctx.stroke();
+  [[.35,12],[.55,10],[.72,8]].forEach(([fr,sz])=>{
+    const lx=cx+sw*fr,ly=baseY-h*fr;
+    drawHempLeaf(ctx,lx-sz*.65,ly,sz,-.42,sg);
+    drawHempLeaf(ctx,lx+sz*.65,ly,sz,.42,sg.replace('#','#').replace('40b','50c'));
+  });
+  const night=getNightFactor();
+  const budAlpha=.2+night*.5;
+  const gr=ctx.createRadialGradient(cx+sw,baseY-h,0,cx+sw,baseY-h,8);
+  gr.addColorStop(0,`rgba(160,255,80,${budAlpha})`);gr.addColorStop(1,'rgba(60,180,10,0)');
+  ctx.fillStyle=gr;ctx.beginPath();ctx.ellipse(cx+sw,baseY-h,7,10,0,0,Math.PI*2);ctx.fill();
+}
+
+function drawSunflowerPlant(ctx,cx,baseY,h,f,sunX,canvasW){
+  const sw=Math.sin(f*.02+cx)*2;
+  const sunAngle=Math.atan2(0,sunX-cx);
+  ctx.strokeStyle='#2a7a18';ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(cx,baseY);ctx.lineTo(cx+sw,baseY-h);ctx.stroke();
+  ctx.fillStyle=seasonGreen();
+  ctx.beginPath();ctx.ellipse(cx-11+sw,baseY-h*.5,13,5,-.4,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(cx+11+sw,baseY-h*.55,13,5,.4,0,Math.PI*2);ctx.fill();
+  const px=cx+sw,py=baseY-h,pr=9;
+  // Track sun (rotate petals toward sun)
+  const trackAngle=Math.atan2(py-(80),px-sunX);
+  ctx.save();ctx.translate(px,py);ctx.rotate(trackAngle);
+  for(let p=0;p<12;p++){
+    const a=(p/12)*Math.PI*2;
+    ctx.fillStyle=p%2===0?'#f5c020':'#e8a808';
+    ctx.beginPath();ctx.ellipse(Math.cos(a)*pr*1.6,Math.sin(a)*pr*1.6,pr*.55,pr*.32,a,0,Math.PI*2);ctx.fill();
+  }
+  const cg=ctx.createRadialGradient(0,0,0,0,0,pr);
+  cg.addColorStop(0,'#5a2800');cg.addColorStop(1,'#1a0a00');
+  ctx.fillStyle=cg;ctx.beginPath();ctx.arc(0,0,pr,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#604010';
+  for(let d=0;d<8;d++){const da=(d/8)*Math.PI*2;ctx.beginPath();ctx.arc(Math.cos(da)*pr*.5,Math.sin(da)*pr*.5,1.2,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+}
+
+function drawCornStalk(ctx,cx,baseY,h,f){
+  const sw=Math.sin(f*.022+cx)*2;
+  ctx.strokeStyle='#2a8010';ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(cx,baseY);ctx.lineTo(cx+sw,baseY-h);ctx.stroke();
+  ctx.fillStyle=seasonGreen();
+  [[.3,-1],[.5,1],[.7,-1]].forEach(([fr,side])=>{
+    ctx.beginPath();ctx.moveTo(cx+sw*fr,baseY-h*fr);
+    ctx.quadraticCurveTo(cx+side*22+sw*fr,baseY-h*fr-8,cx+side*15+sw*fr,baseY-h*fr-22);
+    ctx.quadraticCurveTo(cx+side*5+sw*fr,baseY-h*fr-9,cx+sw*fr,baseY-h*fr);ctx.fill();
+  });
+  if(season!=='winter'){
+    const ex=cx+sw,ey=baseY-h*.58;
+    ctx.fillStyle='#f0d040';ctx.beginPath();ctx.ellipse(ex+9,ey,5,13,.45,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#e0b018';
+    for(let r=0;r<4;r++){ctx.beginPath();ctx.ellipse(ex+9,ey-9+r*4,4,2,.45,0,Math.PI*2);ctx.fill();}
+    ctx.strokeStyle='#c09020';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(ex+9,ey-14);ctx.lineTo(ex+16,ey-24);ctx.stroke();
+  }
+  ctx.strokeStyle='#6a5020';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(cx+sw,baseY-h);ctx.lineTo(cx+sw,baseY-h-12);ctx.stroke();
+}
+
+function drawPoppyPlant(ctx,cx,baseY,h,f,i){
+  const sw=Math.sin(f*.028+cx+i)*3.5;
+  ctx.strokeStyle='#1a7018';ctx.lineWidth=1.8;
+  ctx.beginPath();ctx.moveTo(cx,baseY);ctx.quadraticCurveTo(cx+sw*.4,baseY-h*.5,cx+sw,baseY-h);ctx.stroke();
+  const px=cx+sw,py=baseY-h;
+  const colors=['#e82850','#c01030','#e04070','#f03060'];
+  for(let p=0;p<4;p++){
+    const a=(p/4)*Math.PI*2+f*.005;
+    ctx.fillStyle=colors[p%4];
+    ctx.beginPath();ctx.ellipse(px+Math.cos(a)*7,py+Math.sin(a)*7,8,11,a,0,Math.PI*2);ctx.fill();
+  }
+  ctx.fillStyle='#150612';ctx.beginPath();ctx.arc(px,py,4.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(60,0,30,.5)';ctx.beginPath();ctx.arc(px,py,6,0,Math.PI*2);ctx.fill();
+}
+
+// ═══════════ BUILDING TILE RENDERERS ═══════════
+function drawBee(ctx,bx,by,angle,f){
+  ctx.save();ctx.translate(bx,by);ctx.rotate(angle+Math.PI/2);
+  ctx.fillStyle='#f0c020';ctx.beginPath();ctx.ellipse(0,0,3,5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a1000';ctx.fillRect(-3,-2,6,1.5);ctx.fillRect(-3,1,6,1.5);
+  const wf=Math.sin(f*.5)*1.5;
+  ctx.fillStyle='rgba(200,230,255,.75)';
+  ctx.beginPath();ctx.ellipse(-4,-3+wf,4.5,2.5,-.5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(4,-3+wf,4.5,2.5,.5,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function tileHempFarm(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const gr=ctx.createRadialGradient(x+tw/2,y+tw/2,0,x+tw/2,y+tw/2,tw*.6);
+  gr.addColorStop(0,`rgba(60,220,20,${.08+getNightFactor()*.25})`);gr.addColorStop(1,'rgba(20,140,5,0)');
+  ctx.fillStyle=gr;ctx.fillRect(x,y,tw,tw);
+  [.2,.5,.8].forEach((rx,i)=>drawHempPlant(ctx,x+tw*rx,y+tw*.9,tw*(.48+i*.04),f));
+  drawSnow(ctx,x,y,tw,tw);
+}
+
+function tileBeehive(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  [[.15,.76,'#f0c020'],[.85,.73,'#e060a0'],[.5,.78,'#60c0f0']].forEach(([rx,ry,c])=>{
+    ctx.fillStyle=c;ctx.beginPath();ctx.arc(x+tw*rx,y+tw*ry,3,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#3a7018';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x+tw*rx,y+tw*ry+1);ctx.lineTo(x+tw*rx,y+tw*(ry+.07));ctx.stroke();
+  });
+  const hx=x+tw*.5,hy=y+tw*.62;
+  ctx.fillStyle='#d0a038';
+  ctx.beginPath();ctx.ellipse(hx,hy,tw*.26,tw*.32,0,Math.PI,0,true);ctx.fill();
+  ctx.fillStyle='#a87828';ctx.beginPath();ctx.ellipse(hx,hy,tw*.28,tw*.06,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#806018';ctx.lineWidth=1;
+  for(let s=1;s<=3;s++){ctx.beginPath();ctx.ellipse(hx,hy-s*8,tw*(.265-s*.015),tw*.04,0,Math.PI,0,true);ctx.stroke();}
+  ctx.fillStyle='#2a1500';ctx.beginPath();ctx.ellipse(hx,hy+2,tw*.055,tw*.038,0,0,Math.PI*2);ctx.fill();
+  [0,2.1,4.2].forEach(off=>drawBee(ctx,hx+Math.cos(beeAngle+off)*(tw*.38),hy-tw*.1+Math.sin(beeAngle+off)*(tw*.16),beeAngle+off,f));
+  drawSnow(ctx,x,y,tw,tw);
+}
+
+function tileHouse(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,gy=y+tw*.91,bw=tw*.64,bh=tw*.43;
+  // Walls
+  ctx.fillStyle='#f0e8d0';ctx.fillRect(cx-bw/2,gy-bh,bw,bh);
+  ctx.strokeStyle='rgba(0,0,0,.07)';ctx.lineWidth=.5;
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++)ctx.strokeRect(cx-bw/2+c*bw/3,gy-bh+r*bh/3,bw/3,bh/3);
+  // Thatched roof
+  ctx.fillStyle=season==='winter'?'#d0dce8':'#c8a038';
+  ctx.beginPath();ctx.moveTo(cx-bw/2-5,gy-bh+2);ctx.lineTo(cx,gy-bh-tw*.33);ctx.lineTo(cx+bw/2+5,gy-bh+2);ctx.closePath();ctx.fill();
+  ctx.strokeStyle=season==='winter'?'#a8bcc8':'#a08028';ctx.lineWidth=1;
+  for(let t=0;t<5;t++){const tx=cx-bw/2+t*bw/4;ctx.beginPath();ctx.moveTo(tx,gy-bh+2);ctx.lineTo(cx,gy-bh-tw*.31);ctx.stroke();}
+  // Window glow at night
+  const night=getNightFactor();
+  const winCol=night>.3?`rgba(255,200,80,${night*.9})`:'#87d4ff';
+  [[cx-bw*.27,gy-bh+bh*.28],[cx+bw*.27,gy-bh+bh*.28]].forEach(([wx,wy])=>{
+    if(night>.3){ctx.fillStyle=`rgba(255,180,50,${night*.3})`;ctx.beginPath();ctx.ellipse(wx,wy,18,14,0,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle=winCol;ctx.fillRect(wx-7,wy-7,14,14);
+    ctx.strokeStyle='#806028';ctx.lineWidth=1;ctx.strokeRect(wx-7,wy-7,14,14);
+    ctx.beginPath();ctx.moveTo(wx,wy-7);ctx.lineTo(wx,wy+7);ctx.moveTo(wx-7,wy);ctx.lineTo(wx+7,wy);ctx.stroke();
+  });
+  // Door
+  ctx.fillStyle='#5a2808';ctx.beginPath();ctx.rect(cx-7,gy-22,14,22);ctx.arc(cx,gy-22,7,Math.PI,0);ctx.fill();
+  // Chimney smoke
+  ctx.fillStyle='#604830';ctx.fillRect(cx+bw*.2,gy-bh-tw*.18,7,tw*.2);
+  const st=(f*.4)%22;
+  ctx.globalAlpha=Math.max(0,.55-st/22);
+  ctx.fillStyle='rgba(210,190,170,.8)';ctx.beginPath();ctx.arc(cx+bw*.235,gy-bh-tw*.16-st,2+st*.12,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+  // Snow on roof
+  if(season==='winter'){ctx.fillStyle='rgba(220,235,255,.55)';ctx.beginPath();ctx.moveTo(cx-bw/2-5,gy-bh+2);ctx.lineTo(cx,gy-bh-tw*.33);ctx.lineTo(cx+bw/2+5,gy-bh+2);ctx.closePath();ctx.fill();}
+}
+
+function tileFactory(ctx,x,y,tw,f,col,hasSmoke){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,gy=y+tw*.91,bw=tw*.62,bh=tw*.48;
+  ctx.fillStyle=col||'#b09068';ctx.fillRect(cx-bw/2,gy-bh,bw,bh);
+  ctx.strokeStyle='rgba(0,0,0,.14)';ctx.lineWidth=.5;
+  for(let r=0;r<4;r++)for(let c=0;c<3;c++)ctx.strokeRect(cx-bw/2+c*bw/3,gy-bh+r*bh/4,bw/3,bh/4);
+  ctx.fillStyle='#85c0ff';
+  [[.28,.36],[.72,.36],[.5,.62]].forEach(([rx,ry])=>{
+    ctx.fillRect(cx-bw/2+bw*rx-5,gy-bh+bh*ry-4,10,10);
+    ctx.strokeStyle='#504830';ctx.lineWidth=1;ctx.strokeRect(cx-bw/2+bw*rx-5,gy-bh+bh*ry-4,10,10);
+  });
+  ctx.fillStyle='#3a2010';ctx.fillRect(cx-8,gy-20,16,20);
+  [[.25,.18],[.75,.22]].forEach(([rx,rh])=>{
+    ctx.fillStyle='#484030';ctx.fillRect(cx-bw/2+bw*rx-4,gy-bh-tw*rh,8,tw*rh+4);
+    if(hasSmoke){const st=(f*.3+rx*10)%20;ctx.globalAlpha=Math.max(0,.5-st/20);ctx.fillStyle='rgba(180,160,140,.8)';ctx.beginPath();ctx.arc(cx-bw/2+bw*rx,gy-bh-tw*rh-st,2.5+st*.1,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
+  });
+  drawSnow(ctx,x,y,tw,tw);
+}
+
+function tileMill(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,gy=y+tw*.91;
+  ctx.fillStyle=season==='winter'?'#d8e4f0':'#e8e0c0';
+  ctx.beginPath();ctx.moveTo(cx-tw*.19,gy-tw*.58);ctx.lineTo(cx-tw*.12,gy);ctx.lineTo(cx+tw*.12,gy);ctx.lineTo(cx+tw*.19,gy-tw*.58);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#7a5830';ctx.beginPath();ctx.moveTo(cx-tw*.21,gy-tw*.58);ctx.lineTo(cx,gy-tw*.8);ctx.lineTo(cx+tw*.21,gy-tw*.58);ctx.closePath();ctx.fill();
+  if(season==='winter'){ctx.fillStyle='rgba(220,235,255,.5)';ctx.beginPath();ctx.moveTo(cx-tw*.21,gy-tw*.58);ctx.lineTo(cx,gy-tw*.8);ctx.lineTo(cx+tw*.21,gy-tw*.58);ctx.closePath();ctx.fill();}
+  ctx.fillStyle='#85b8e8';ctx.beginPath();ctx.arc(cx,gy-tw*.38,5,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.translate(cx,gy-tw*.62);ctx.rotate(f*.04);
+  ctx.fillStyle='#9a7038';
+  [[0],[Math.PI/2],[Math.PI],[Math.PI*1.5]].forEach(([a])=>{
+    ctx.save();ctx.rotate(a);ctx.beginPath();ctx.moveTo(-2.5,0);ctx.lineTo(-4,-tw*.28);ctx.lineTo(4,-tw*.28);ctx.lineTo(2.5,0);ctx.closePath();ctx.fill();ctx.restore();
+  });
+  ctx.fillStyle='#503818';ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function tileSolar(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,cy=y+tw*.5;
+  ctx.fillStyle='#1a3870';ctx.fillRect(cx-tw*.38,cy-tw*.3,tw*.76,tw*.5);
+  ctx.fillStyle='#152e60';
+  for(let pr=0;pr<3;pr++)for(let pc2=0;pc2<4;pc2++)ctx.fillRect(cx-tw*.36+pc2*(tw*.18),cy-tw*.28+pr*(tw*.15),tw*.16,tw*.13);
+  const shi=Math.sin(f*.05)*.3+.28;
+  ctx.fillStyle=`rgba(100,200,255,${shi})`;ctx.beginPath();ctx.ellipse(cx-tw*.1,cy-tw*.12,tw*.06,tw*.03,-.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#585858';ctx.fillRect(cx-2,cy+tw*.2,4,tw*.26);
+  const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,tw*.5);
+  grd.addColorStop(0,`rgba(40,130,255,.09)`);grd.addColorStop(1,'rgba(40,130,255,0)');
+  ctx.fillStyle=grd;ctx.fillRect(x,y,tw,tw);
+  if(season==='winter'){ctx.fillStyle='rgba(220,235,255,.2)';ctx.fillRect(cx-tw*.38,cy-tw*.3,tw*.76,tw*.15);}
+}
+
+function tileGreenhouse(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,gy=y+tw*.9,w=tw*.72,h=tw*.48;
+  // Frame
+  ctx.strokeStyle='#a0b0a0';ctx.lineWidth=2;
+  // Panels (glass)
+  const alpha=.25+Math.sin(f*.04)*.05;
+  ctx.fillStyle=`rgba(160,220,200,${alpha})`;ctx.fillRect(cx-w/2,gy-h,w,h);
+  // Arch roof
+  ctx.fillStyle=`rgba(180,230,210,${alpha*.8})`;
+  ctx.beginPath();ctx.ellipse(cx,gy-h,w/2,h*.55,0,Math.PI,0);ctx.closePath();ctx.fill();
+  // Frame lines
+  ctx.strokeStyle='rgba(100,160,120,.7)';ctx.lineWidth=1.5;
+  ctx.strokeRect(cx-w/2,gy-h,w,h);
+  ctx.beginPath();ctx.ellipse(cx,gy-h,w/2,h*.55,0,Math.PI,0);ctx.stroke();
+  for(let s=1;s<4;s++){ctx.beginPath();ctx.moveTo(cx-w/2+s*w/4,gy-h);ctx.lineTo(cx-w/2+s*w/4,gy);ctx.stroke();}
+  // Plants inside
+  ctx.strokeStyle='#2a8020';ctx.lineWidth=1.5;
+  for(let p=0;p<4;p++){
+    const px=cx-w*.35+p*w*.22,py=gy-4;
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+Math.sin(f*.02+p),py-h*.3);ctx.stroke();
+    const sc=seasonGreen();ctx.fillStyle=sc;ctx.beginPath();ctx.arc(px+Math.sin(f*.02+p),py-h*.3,4,0,Math.PI*2);ctx.fill();
+  }
+  // Condensation drops at night/rain
+  if(weather==='rain'||getNightFactor()>.3){
+    ctx.fillStyle='rgba(150,200,220,.5)';
+    for(let d=0;d<5;d++){ctx.beginPath();ctx.arc(cx-w*.3+d*w*.16,gy-h*.6,1.5,0,Math.PI*2);ctx.fill();}
   }
 }
 
-// ═══════════════════════════════════════════════
-//  SELECT TILE
-// ═══════════════════════════════════════════════
-function selectTile(i){
-  state.selectedTile=i;
-  renderGrid();
-  if(state.grid[i]){
-    switchPanel('info');
-    renderInfo(i);
+function tileMarket(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,gy=y+tw*.91;
+  // Counter
+  ctx.fillStyle='#c09848';ctx.fillRect(cx-tw*.38,gy-tw*.24,tw*.76,tw*.24);
+  [['#e03808',cx-tw*.25],['#f0b810',cx],['#38a838',cx+tw*.25]].forEach(([c,px])=>{
+    ctx.fillStyle=c;ctx.beginPath();ctx.arc(px,gy-tw*.3,5.5,0,Math.PI*2);ctx.fill();
+  });
+  const sw=['#e03808','#f0f0f0'];
+  for(let s=0;s<8;s++){
+    ctx.fillStyle=sw[s%2];ctx.beginPath();
+    ctx.moveTo(cx-tw*.42+s*tw*.105,gy-tw*.5);ctx.lineTo(cx-tw*.42+s*tw*.105,gy-tw*.28);
+    ctx.lineTo(cx-tw*.42+(s+1)*tw*.105,gy-tw*.28);ctx.lineTo(cx-tw*.42+(s+1)*tw*.105,gy-tw*.5);ctx.closePath();ctx.fill();
+  }
+  ctx.fillStyle='#e03808';
+  for(let sc=0;sc<6;sc++){ctx.beginPath();ctx.arc(cx-tw*.38+sc*(tw*.14),gy-tw*.28,tw*.07,0,Math.PI);ctx.fill();}
+  ctx.fillStyle='#e8b840';ctx.fillRect(cx-tw*.2,gy-tw*.65,tw*.4,tw*.13);
+  ctx.fillStyle='#3a1800';ctx.font=`bold ${tw*.068}px Russo One`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('РИНОК',cx,gy-tw*.585);
+}
+
+function tilePharma(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,cy=y+tw*.5;
+  const p=Math.sin(f*.08)*.3+.4;
+  const gr=ctx.createRadialGradient(cx,cy,0,cx,cy,tw*.5);
+  gr.addColorStop(0,`rgba(0,200,100,${p})`);gr.addColorStop(1,'rgba(0,100,50,0)');
+  ctx.fillStyle=gr;ctx.fillRect(x,y,tw,tw);
+  const cs=tw*.19;
+  ctx.fillStyle=`rgba(0,220,120,${.8+p*.2})`;
+  ctx.fillRect(cx-cs,cy-cs*.4,cs*2,cs*.8);ctx.fillRect(cx-cs*.4,cy-cs,cs*.8,cs*2);
+  ctx.strokeStyle=`rgba(0,255,140,${p})`;ctx.lineWidth=2;
+  ctx.strokeRect(cx-cs,cy-cs*.4,cs*2,cs*.8);ctx.strokeRect(cx-cs*.4,cy-cs,cs*.8,cs*2);
+  const fy=cy+tw*.28;
+  ctx.fillStyle=`rgba(0,200,100,.6)`;ctx.beginPath();ctx.ellipse(cx,fy,tw*.15,tw*.08,0,0,Math.PI*2);ctx.fill();
+}
+
+function tileLab(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,cy=y+tw*.5;
+  const p=Math.sin(f*.07)*.3+.4;
+  const gr=ctx.createRadialGradient(cx,cy,0,cx,cy,tw*.48);
+  gr.addColorStop(0,`rgba(120,50,255,${p*.6})`);gr.addColorStop(1,'rgba(60,20,120,0)');
+  ctx.fillStyle=gr;ctx.fillRect(x,y,tw,tw);
+  const fy=cy+tw*.1;
+  ctx.fillStyle='rgba(80,180,255,.85)';ctx.beginPath();ctx.ellipse(cx,fy,tw*.2,tw*.14,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(150,200,255,.7)';ctx.fillRect(cx-tw*.06,cy-tw*.2,tw*.12,tw*.3);
+  for(let b=0;b<3;b++){
+    const bt=((f*.04+b*.7)%1);
+    ctx.fillStyle=`rgba(100,220,255,${.7-bt*.7})`;
+    ctx.beginPath();ctx.arc(cx+(b-1)*5,fy-tw*.06-bt*tw*.16,2+bt*1.5,0,Math.PI*2);ctx.fill();
+  }
+}
+
+function tileSeedBank(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  const cx=x+tw*.5,cy=y+tw*.52;
+  const p=Math.sin(f*.06)*.25+.35;
+  const gr=ctx.createRadialGradient(cx,cy,0,cx,cy,tw*.48);
+  gr.addColorStop(0,`rgba(200,160,30,${p})`);gr.addColorStop(1,'rgba(100,80,10,0)');
+  ctx.fillStyle=gr;ctx.fillRect(x,y,tw,tw);
+  ctx.fillStyle='#806020';ctx.beginPath();ctx.arc(cx,cy,tw*.32,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#c0a030';ctx.beginPath();ctx.arc(cx,cy,tw*.28,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#e0c040';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,tw*.22,0,Math.PI*2);ctx.stroke();
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(f*.01);
+  ctx.strokeStyle='#c0a030';ctx.lineWidth=2;
+  for(let s=0;s<4;s++){ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(s*Math.PI/2)*tw*.18,Math.sin(s*Math.PI/2)*tw*.18);ctx.stroke();}
+  ctx.restore();
+  ctx.fillStyle='#ffe050';ctx.font=`${tw*.22}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('★',cx,cy+1);
+}
+
+function tileEmpty(ctx,x,y,tw,f){
+  gnd(ctx,x,y,tw,tw);
+  ctx.strokeStyle='#4a8a18';ctx.lineWidth=1.8;
+  [[.18,.58],[.5,.38],[.82,.68],[.32,.82],[.68,.48]].forEach(([rx,ry])=>{
+    const gx=x+tw*rx,gy=y+tw*ry,sw=Math.sin(f*.02+gx)*1.5;
+    ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(gx+sw-2,gy-6);ctx.moveTo(gx,gy);ctx.lineTo(gx+sw,gy-8);ctx.moveTo(gx,gy);ctx.lineTo(gx+sw+2,gy-5);ctx.stroke();
+  });
+  if(season==='winter'){
+    ctx.fillStyle='rgba(220,235,255,.35)';ctx.fillRect(x,y,tw,tw);
+    for(let sf=0;sf<6;sf++){ctx.fillStyle='rgba(255,255,255,.7)';ctx.beginPath();ctx.arc(x+tw*(.1+sf*.15),y+tw*(.1+Math.sin(sf*1.3)*.2),1.5,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.strokeStyle='rgba(80,160,40,.32)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x+tw/2-8,y+tw/2);ctx.lineTo(x+tw/2+8,y+tw/2);
+  ctx.moveTo(x+tw/2,y+tw/2-8);ctx.lineTo(x+tw/2,y+tw/2+8);ctx.stroke();
+}
+
+// ═══════════ TILE DISPATCH ═══════════
+function drawTile(idx,sunX){
+  const col=idx%COLS,row=Math.floor(idx/COLS);
+  const x=col*TW,y=row*TW;
+  const b=S.grid[idx];
+  if(b){
+    const t=b.t;
+    if(t==='hemp_farm')tileHempFarm(gc,x,y,TW,frame);
+    else if(t==='sunflower'){gnd(gc,x,y,TW,TW);[.2,.52,.82].forEach((rx,i)=>drawSunflowerPlant(gc,x+TW*rx,y+TW*.9,TW*(.44+i*.04),frame,sunX,game.width));}
+    else if(t==='corn_field'){gnd(gc,x,y,TW,TW);[.2,.5,.8].forEach((rx,i)=>drawCornStalk(gc,x+TW*rx,y+TW*.9,TW*(.52+i*.04),frame));}
+    else if(t==='poppy'){gnd(gc,x,y,TW,TW);[[.17,.58,0],[.37,.64,1],[.6,.59,2],[.82,.55,3]].forEach(([rx,ry,i])=>drawPoppyPlant(gc,x+TW*rx,y+TW*ry,TW*.4,frame,i));drawSnow(gc,x,y,TW,TW);}
+    else if(t==='beehive')tileBeehive(gc,x,y,TW,frame);
+    else if(t==='greenhouse')tileGreenhouse(gc,x,y,TW,frame);
+    else if(t==='house')tileHouse(gc,x,y,TW,frame);
+    else if(t==='press')tileFactory(gc,x,y,TW,frame,'#b09068',true);
+    else if(t==='mill')tileMill(gc,x,y,TW,frame);
+    else if(t==='rope'){tileFactory(gc,x,y,TW,frame,'#9a8048',false);
+      gc.save();gc.translate(x+TW*.5,y+TW*.5);gc.rotate(frame*.02);
+      for(let c=4;c>=1;c--){gc.strokeStyle=c%2?'#c0a040':'#a08028';gc.lineWidth=3;gc.beginPath();gc.arc(0,0,c*TW*.1,0,Math.PI*1.8);gc.stroke();}
+      gc.restore();}
+    else if(t==='solar')tileSolar(gc,x,y,TW,frame);
+    else if(t==='oil_press')tileFactory(gc,x,y,TW,frame,'#907058',true);
+    else if(t==='paint'){tileFactory(gc,x,y,TW,frame,'#806880',true);
+      ['#e03808','#38a838','#1828d8','#f0b010'].forEach((c,i)=>{gc.fillStyle=c;gc.beginPath();gc.arc(x+TW*(.2+i*.2),y+TW*.7,4,0,Math.PI*2);gc.fill();});}
+    else if(t==='varnish')tileFactory(gc,x,y,TW,frame,'#a07848',true);
+    else if(t==='market')tileMarket(gc,x,y,TW,frame);
+    else if(t==='pharma')tilePharma(gc,x,y,TW,frame);
+    else if(t==='textile')tileFactory(gc,x,y,TW,frame,'#9090b0',true);
+    else if(t==='bioplastic')tileFactory(gc,x,y,TW,frame,'#506050',true);
+    else if(t==='lab')tileLab(gc,x,y,TW,frame);
+    else if(t==='seed_bank')tileSeedBank(gc,x,y,TW,frame);
+    else tileEmpty(gc,x,y,TW,frame);
+    // Level badge
+    gc.fillStyle='rgba(0,0,0,.55)';gc.fillRect(x+2,y+2,17,12);
+    gc.fillStyle='#f0b828';gc.font=`bold ${TW*.1}px Russo One`;gc.textAlign='left';gc.textBaseline='top';
+    gc.fillText('Lv'+b.lv,x+3,y+2);
+    // Prod badge
+    gc.fillStyle='rgba(0,0,0,.52)';gc.fillRect(x,y+TW-13,TW,13);
+    gc.fillStyle='#b0f048';gc.font=`${TW*.085}px sans-serif`;gc.textAlign='center';gc.textBaseline='bottom';
+    gc.fillText(B[b.t]?.cy||'',x+TW/2,y+TW-1);
   } else {
-    switchPanel('build');
+    tileEmpty(gc,x,y,TW,frame);
+  }
+  // Selection
+  if(S.sel===idx){gc.strokeStyle='rgba(240,180,20,.95)';gc.lineWidth=3;}
+  else{gc.strokeStyle='rgba(0,0,0,.32)';gc.lineWidth=1;}
+  gc.strokeRect(x+.5,y+.5,TW-1,TW-1);
+}
+
+// ═══════════ SPECIAL EFFECTS ═══════════
+function drawRain(){
+  if(weather!=='rain')return;
+  gc.strokeStyle='rgba(130,180,255,.38)';gc.lineWidth=1;
+  raindrops.forEach(d=>{
+    d.y+=d.sp;d.x-=d.sp*.2;
+    if(d.y>game.height){d.y=-15;d.x=Math.random()*(game.width+40);}
+    gc.beginPath();gc.moveTo(d.x,d.y);gc.lineTo(d.x-2,d.y+d.len);gc.stroke();
+  });
+  // Puddle rings on ground
+  gc.strokeStyle='rgba(130,180,255,.15)';gc.lineWidth=.8;
+  for(let p=0;p<4;p++){
+    const pr=(frame*2+p*25)%35;
+    gc.beginPath();gc.ellipse(50+p*90,game.height-5,pr*.5,pr*.2,0,0,Math.PI*2);gc.stroke();
   }
 }
 
-// ═══════════════════════════════════════════════
-//  BUILD PANEL
-// ═══════════════════════════════════════════════
-function renderBuildGrid(){
-  const lvl=unlockLevel();
-  const bg=document.getElementById('buildGrid');
-  bg.innerHTML='';
-  Object.entries(BUILDINGS).forEach(([key,bd])=>{
-    const locked=bd.unlockAt>lvl;
-    const canBuild=!locked&&canAfford(bd.cost);
-    const div=document.createElement('div');
-    div.className='build-card'+(locked?' locked':canBuild?' can-build':'');
-    div.innerHTML=`
-      <div class="bc-top">
-        <span class="bc-icon">${bd.icon}</span>
-        <span class="bc-name">${bd.name}</span>
-      </div>
-      <div class="bc-desc">${bd.desc}</div>
-      <div class="bc-chain">⛓ ${bd.chain}</div>
-      <div class="bc-cost">${fmtCost(bd.cost)}${locked?` 🔒 Потр.Lv${bd.unlockAt}`:''}</div>`;
-    if(!locked)div.onclick=()=>buildOn(state.selectedTile,key);
-    bg.appendChild(div);
+function drawFog(){
+  if(weather!=='fog')return;
+  fogBlobs.forEach(fb=>{
+    fb.x+=fb.sp;if(fb.x>game.width+200)fb.x=-200;
+    const gr=gc.createRadialGradient(fb.x,fb.y,0,fb.x,fb.y,fb.w*.5);
+    gr.addColorStop(0,`rgba(220,230,210,${fb.op})`);gr.addColorStop(1,'rgba(200,215,190,0)');
+    gc.fillStyle=gr;gc.beginPath();gc.ellipse(fb.x,fb.y,fb.w*.5,fb.h*.5,0,0,Math.PI*2);gc.fill();
   });
 }
-function fmtCost(cost){
-  return Object.entries(cost).map(([k,v])=>{
-    const icons={terra:'💰',seeds:'🌱',fiber:'🧵',oil:'🫗',food:'🍞'};
-    return `${icons[k]||k}${v}`;
-  }).join(' ');
-}
-function canAfford(cost){
-  return Object.entries(cost).every(([k,v])=>(state[k]||0)>=v);
+
+function drawFireflies(){
+  const nf=getNightFactor();if(nf<.25)return;
+  fireflies.forEach(ff=>{
+    ff.x+=ff.spx+Math.sin(frame*.012+ff.ph)*.35;
+    ff.y+=ff.spy+Math.cos(frame*.014+ff.ph)*.22;
+    if(ff.x<0)ff.x=game.width;if(ff.x>game.width)ff.x=0;
+    if(ff.y<0)ff.y=game.height;if(ff.y>game.height)ff.y=0;
+    const blink=Math.sin(frame*.055+ff.ph*3)*.5+.5;
+    const al=blink*nf*.9;
+    const gr=gc.createRadialGradient(ff.x,ff.y,0,ff.x,ff.y,7);
+    gr.addColorStop(0,`rgba(180,255,80,${al})`);gr.addColorStop(1,'rgba(80,200,30,0)');
+    gc.fillStyle=gr;gc.beginPath();gc.arc(ff.x,ff.y,7,0,Math.PI*2);gc.fill();
+    gc.fillStyle=`rgba(230,255,150,${al})`;gc.beginPath();gc.arc(ff.x,ff.y,1.5,0,Math.PI*2);gc.fill();
+  });
 }
 
-// ═══════════════════════════════════════════════
-//  BUILD
-// ═══════════════════════════════════════════════
-function buildOn(tileIdx, buildingKey){
-  if(tileIdx===null||state.grid[tileIdx])return;
-  const bd=BUILDINGS[buildingKey];
-  if(!canAfford(bd.cost)){showNotif('⚠ Не вистачає ресурсів!');return;}
-  Object.entries(bd.cost).forEach(([k,v])=>state[k]-=v);
-  state.grid[tileIdx]={type:buildingKey,level:1};
-  state.buildCount++;
-  if(buildingKey==='lab')state.labs++;
-  showNotif('✅ '+bd.name+' збудовано!');
-  // random seed drop on build
-  if(Math.random()<0.15) dropRareSeed();
-  renderGrid();
-  renderBuildGrid();
-  renderResBar();
+function drawDrones(){
+  drones.forEach(drone=>{
+    const dx=drone.tx-drone.x,dy=drone.ty-drone.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<8){drone.tx=Math.random()*game.width;drone.ty=15+Math.random()*45;}
+    drone.x+=dx/dist*drone.sp;drone.y+=dy/dist*drone.sp;
+    drone.led+=.12;
+    const bob=Math.sin(frame*.09)*2;
+    const angle=Math.atan2(dy,dx);
+    gc.save();gc.translate(drone.x,drone.y+bob);gc.rotate(angle-Math.PI/2);
+    // Body
+    gc.fillStyle='#383838';gc.beginPath();gc.ellipse(0,0,7,5,0,0,Math.PI*2);gc.fill();
+    gc.strokeStyle='#252525';gc.lineWidth=1;gc.stroke();
+    // Arms
+    [[-.7,-.6],[.7,-.6],[-.7,.6],[.7,.6]].forEach(([ax,ay])=>{
+      gc.strokeStyle='#484848';gc.lineWidth=1.5;
+      gc.beginPath();gc.moveTo(ax*5,ay*3);gc.lineTo(ax*13,ay*7);gc.stroke();
+      // Rotor blur
+      gc.save();gc.translate(ax*13,ay*7);gc.rotate(frame*.35*ax);
+      gc.strokeStyle='rgba(140,140,140,.55)';gc.lineWidth=1;
+      gc.beginPath();gc.moveTo(-7,0);gc.lineTo(7,0);gc.stroke();gc.restore();
+    });
+    // Camera
+    gc.fillStyle='#5090f0';gc.beginPath();gc.arc(0,2,2.5,0,Math.PI*2);gc.fill();
+    // LED blink
+    if(Math.sin(drone.led)>.3){gc.fillStyle='rgba(255,40,40,.95)';gc.beginPath();gc.arc(5,-2,2,0,Math.PI*2);gc.fill();}
+    gc.restore();
+  });
 }
 
-// ═══════════════════════════════════════════════
-//  INFO PANEL
-// ═══════════════════════════════════════════════
-function renderInfo(tileIdx){
-  const b=state.grid[tileIdx];
-  if(!b){document.getElementById('infoContent').innerHTML='<div style="text-align:center;color:var(--brown);font-style:italic;padding:20px">Порожня клітинка — обери будівлю</div>';return;}
-  const bd=BUILDINGS[b.type];
-  const upgCost=Math.floor(50*Math.pow(2,b.level-1));
-  const canUpg=state.terra>=upgCost&&b.level<3;
-  document.getElementById('infoContent').innerHTML=`
-    <div class="info-box">
-      <div class="info-title">${bd.icon} ${bd.name} · Lv${b.level}</div>
-      <div class="info-chain">
-        <strong>Виробництво за цикл:</strong> ${bd.perCycle}<br>
-        <strong>Ланцюжок:</strong> ${bd.chain}<br>
-        ${Object.keys(bd.consumes).length?`<strong>Споживає:</strong> ${fmtCost(bd.consumes)}/цикл`:''}
-      </div>
-      <div class="info-btns">
-        <button class="ibtn ibtn-upgrade" onclick="upgradeBuilding(${tileIdx})" ${canUpg?'':'disabled'}>
-          ⬆ Апгрейд · 💰${upgCost}
-        </button>
-        <button class="ibtn ibtn-demolish" onclick="demolish(${tileIdx})">
-          🗑 Знести
-        </button>
-      </div>
+function drawNightOverlay(){
+  const nf=getNightFactor();if(nf<.05)return;
+  gc.fillStyle=`rgba(5,5,25,${nf*.62})`;gc.fillRect(0,0,game.width,game.height);
+}
+
+// ═══════════ PANORAMA ═══════════
+function drawPano(){
+  const W=pano.width,H=pano.height;
+  const t=getGameTime(),nf=getNightFactor();
+  // Sky
+  let skyTop,skyBot;
+  if(nf>.7){skyTop='#040820';skyBot='#080c28';}
+  else if(t<.3||t>.7){skyTop='#e87020';skyBot='#f0a848';}
+  else if(season==='winter'){skyTop='#b0c8e0';skyBot='#d8e8f0';}
+  else if(season==='autumn'){skyTop='#c06820';skyBot='#e0a040';}
+  else{skyTop='#3888d8';skyBot='#80bce8';}
+  const sky=pc.createLinearGradient(0,0,0,H*.6);
+  sky.addColorStop(0,skyTop);sky.addColorStop(1,skyBot);
+  pc.fillStyle=sky;pc.fillRect(0,0,W,H*.6);
+
+  // Ground
+  let g1,g2;
+  if(season==='winter'){g1='#d0dce8';g2='#b8c8d8';}
+  else if(season==='autumn'){g1='#c09040';g2='#a07028';}
+  else{g1='#5ab030';g2='#3a8018';}
+  const gnd2=pc.createLinearGradient(0,H*.6,0,H);
+  gnd2.addColorStop(0,g1);gnd2.addColorStop(1,g2);
+  pc.fillStyle=gnd2;pc.fillRect(0,H*.6,W,H*.4);
+
+  // Stars at night
+  if(nf>.3){
+    stars.forEach(s=>{
+      const twinkle=Math.sin(frame*.04+s.ph)*.4+.6;
+      pc.fillStyle=`rgba(255,255,240,${nf*twinkle*.85})`;
+      pc.beginPath();pc.arc(s.x,s.y,s.r,0,Math.PI*2);pc.fill();
+    });
+    // Moon
+    const mx=W*.8,my=H*.22;
+    pc.fillStyle=`rgba(240,240,210,${nf})`;
+    pc.beginPath();pc.arc(mx,my,14,0,Math.PI*2);pc.fill();
+    pc.fillStyle=skyTop;pc.beginPath();pc.arc(mx+5,my-3,11,0,Math.PI*2);pc.fill();
+  }
+
+  // Sun
+  const sunX=W*(.08+t*.84);const sunY=H*(.22+Math.sin(t*Math.PI)*(-.18));
+  if(nf<.9){
+    const sAlpha=1-nf;
+    const sg=pc.createRadialGradient(sunX,sunY,0,sunX,sunY,28);
+    sg.addColorStop(0,`rgba(255,253,220,${sAlpha})`);sg.addColorStop(.4,`rgba(255,210,60,${sAlpha})`);sg.addColorStop(1,'rgba(255,180,40,0)');
+    pc.fillStyle=sg;pc.fillRect(sunX-32,sunY-32,64,64);
+    pc.save();pc.translate(sunX,sunY);pc.rotate(frame*.008);
+    pc.strokeStyle=`rgba(255,210,60,${sAlpha*.28})`;pc.lineWidth=2;
+    for(let r=0;r<8;r++){const ra=r*Math.PI/4;pc.beginPath();pc.moveTo(Math.cos(ra)*16,Math.sin(ra)*16);pc.lineTo(Math.cos(ra)*28,Math.sin(ra)*28);pc.stroke();}
+    pc.restore();
+  }
+
+  // Clouds
+  clouds.forEach(cl=>{
+    cl.x+=cl.sp;if(cl.x>W+110)cl.x=-110;
+    const ca=nf>.6?.35:.82;
+    pc.fillStyle=`rgba(255,255,255,${ca})`;
+    pc.beginPath();pc.ellipse(cl.x,H*.2,36,15,0,0,Math.PI*2);pc.fill();
+    pc.beginPath();pc.ellipse(cl.x-19,H*.22,21,13,0,0,Math.PI*2);pc.fill();
+    pc.beginPath();pc.ellipse(cl.x+19,H*.22,23,12,0,0,Math.PI*2);pc.fill();
+  });
+
+  // Hills
+  pc.fillStyle=nf>.5?'rgba(20,40,15,.6)':'rgba(70,140,40,.45)';
+  pc.beginPath();pc.moveTo(0,H*.6);pc.quadraticCurveTo(W*.25,H*.36,W*.5,H*.52);pc.quadraticCurveTo(W*.75,H*.38,W,H*.52);pc.lineTo(W,H*.6);pc.closePath();pc.fill();
+
+  // Trees
+  [.78,.86,.93].forEach((rx,i)=>{
+    const tx=W*rx,ty=H*.6;
+    const tc=nf>.5?'#1a3010':['#3a8018','#4a9020','#2a6810'][i];
+    pc.fillStyle='#4a2808';pc.fillRect(tx-3,ty-15,6,15);
+    pc.fillStyle=tc;pc.beginPath();pc.arc(tx,ty-22,14+i*3,0,Math.PI*2);pc.fill();
+    if(season==='winter'){pc.fillStyle='rgba(220,235,255,.45)';pc.beginPath();pc.arc(tx,ty-22,14+i*3,0,Math.PI*2);pc.fill();}
+    if(season==='autumn'){pc.fillStyle='rgba(200,100,20,.4)';pc.beginPath();pc.arc(tx,ty-22,14+i*3,0,Math.PI*2);pc.fill();}
+  });
+
+  // Hemp mini field
+  for(let h=0;h<9;h++){
+    const hx=W*.3+h*20,hy=H*.6,sw=Math.sin(frame*.025+h)*2;
+    pc.strokeStyle=nf>.5?'#1a5010':'#3a8a18';pc.lineWidth=2;
+    pc.beginPath();pc.moveTo(hx,hy);pc.lineTo(hx+sw,hy-22);pc.stroke();
+    const bAlpha=nf>.4?(.15+nf*.5):.12;
+    pc.fillStyle=`rgba(100,230,50,${bAlpha})`;
+    pc.beginPath();pc.arc(hx+sw,hy-22,3,0,Math.PI*2);pc.fill();
+  }
+
+  // Hut
+  const htx=W*.1,hty=H*.6;
+  pc.fillStyle=nf>.5?'#c0b890':'#f0e8d0';pc.fillRect(htx-22,hty-29,44,29);
+  pc.fillStyle=season==='winter'?'#c0d0e0':'#c8a038';
+  pc.beginPath();pc.moveTo(htx-26,hty-29);pc.lineTo(htx,hty-46);pc.lineTo(htx+26,hty-29);pc.closePath();pc.fill();
+  if(season==='winter'){pc.fillStyle='rgba(220,235,255,.5)';pc.beginPath();pc.moveTo(htx-26,hty-29);pc.lineTo(htx,hty-46);pc.lineTo(htx+26,hty-29);pc.closePath();pc.fill();}
+  // Window glow
+  const wc=nf>.3?`rgba(255,190,60,${nf*.9})`:'#87d4ff';
+  [[htx-13,hty-22],[htx+6,hty-22]].forEach(([wx,wy])=>{
+    if(nf>.3){pc.fillStyle=`rgba(255,160,40,${nf*.35})`;pc.beginPath();pc.ellipse(wx+4,wy+4,14,10,0,0,Math.PI*2);pc.fill();}
+    pc.fillStyle=wc;pc.fillRect(wx,wy,8,8);
+  });
+  pc.fillStyle='#4a2808';pc.fillRect(htx-5,hty-17,10,17);
+  // Chimney smoke
+  const st2=(frame*.4)%22;
+  pc.globalAlpha=Math.max(0,.55-st2/22);pc.fillStyle='rgba(210,190,170,.8)';
+  pc.beginPath();pc.arc(htx+13,hty-35-st2,2+st2*.1,0,Math.PI*2);pc.fill();pc.globalAlpha=1;
+
+  // Fence
+  for(let f2=0;f2<7;f2++){const fx=W*.2+f2*13;pc.fillStyle='#8a6030';pc.fillRect(fx-2,H*.56,4,12);}
+  pc.strokeStyle='#a07838';pc.lineWidth=1.5;pc.beginPath();pc.moveTo(W*.18,H*.58);pc.lineTo(W*.2+6*13+2,H*.58);pc.stroke();
+
+  // Birds (left→right, M-shape, correct direction)
+  birds.forEach(bird=>{
+    bird.x+=bird.sp;bird.wing+=.16;if(bird.x>W+55)bird.x=-55;
+    const wf=Math.sin(bird.wing)*4;
+    pc.strokeStyle=nf>.5?'rgba(120,140,160,.6)':'#1a1a2a';pc.lineWidth=1.5;pc.lineCap='round';
+    // M shape facing right (positive x direction)
+    pc.beginPath();
+    pc.moveTo(bird.x+8,bird.y+wf);pc.quadraticCurveTo(bird.x+4,bird.y-3+wf,bird.x,bird.y);
+    pc.quadraticCurveTo(bird.x-4,bird.y-3+wf,bird.x-8,bird.y+wf);pc.stroke();
+  });
+
+  // Floating bees on panorama
+  [0,1,2].forEach(i=>{
+    const ba=beeAngle*1.2+i*2.2;
+    drawBee(pc,W*.38+Math.cos(ba)*28,H*.44+Math.sin(ba)*9,ba,frame);
+  });
+
+  // Night fog on panorama
+  if(weather==='fog'&&nf<.5){
+    pc.fillStyle='rgba(200,215,195,.18)';pc.fillRect(0,H*.5,W,H*.5);
+  }
+
+  // Update day info
+  const hourNames=['🌙 Ніч','🌙 Ніч','🌙 Ніч','🌅 Ранок','🌅 Ранок','🌤️ День','🌤️ День','🌤️ День','🌤️ День','🌤️ День','🌤️ День','🌆 Вечір','🌆 Вечір','🌙 Ніч'];
+  const hi=Math.floor(t*14);
+  const wIco=weather==='rain'?'🌧️':weather==='fog'?'🌫️':'';
+  const sIco={spring:'🌸',summer:'🌞',autumn:'🍂',winter:'❄️'}[season];
+  document.getElementById('dayInfo').textContent=`${hourNames[hi]||'🌙'} ${sIco} ${wIco}`;
+
+  return sunX;
+}
+
+// ═══════════ GAME LOOP ═══════════
+function loop(){
+  frame++;beeAngle+=.028;
+
+  // Panorama
+  const sunX=drawPano();
+
+  // Game canvas - night overlay first
+  gc.clearRect(0,0,game.width,game.height);
+
+  // Draw tiles
+  for(let i=0;i<20;i++)drawTile(i,sunX);
+
+  // Grid lines
+  gc.strokeStyle='rgba(0,0,0,.28)';gc.lineWidth=1;
+  for(let c=0;c<=COLS;c++){gc.beginPath();gc.moveTo(c*TW,0);gc.lineTo(c*TW,ROWS*TW);gc.stroke();}
+  for(let r=0;r<=ROWS;r++){gc.beginPath();gc.moveTo(0,r*TW);gc.lineTo(COLS*TW,r*TW);gc.stroke();}
+
+  // Effects on top
+  drawNightOverlay();
+  drawFireflies();
+  drawDrones();
+  drawRain();
+  drawFog();
+
+  requestAnimationFrame(loop);
+}
+
+// ═══════════ INPUT ═══════════
+function getTileIdx(cx2,cy2){
+  const rect=game.getBoundingClientRect();
+  const sx=game.width/rect.width,sy=game.height/rect.height;
+  const cx=(cx2-rect.left)*sx,cy=(cy2-rect.top)*sy;
+  const col=Math.floor(cx/TW),row=Math.floor(cy/TW);
+  if(col<0||col>=COLS||row<0||row>=ROWS)return -1;
+  return row*COLS+col;
+}
+game.addEventListener('touchstart',e=>{e.preventDefault();const idx=getTileIdx(e.touches[0].clientX,e.touches[0].clientY);if(idx>=0)tapTile(idx);},{passive:false});
+game.addEventListener('click',e=>{const idx=getTileIdx(e.clientX,e.clientY);if(idx>=0)tapTile(idx);});
+function tapTile(i){S.sel=i;if(S.grid[i]){sp('info');renderInfo(i);}else{sp('build');renderBuild();}}
+
+// ═══════════ UI FUNCTIONS ═══════════
+function renderRes(){document.getElementById('rbar').innerHTML=RD.map(r=>`<div class="rc"><span class="ri">${r.i}</span><span class="rv">${fmt(S[r.k]||0)}</span></div>`).join('');}
+
+function renderBuild(){
+  const lv=ulv();
+  document.getElementById('bgrid').innerHTML=Object.entries(B).map(([k,bd])=>{
+    const locked=bd.ul>lv,ok=!locked&&canAfford(bd.cost);
+    return`<div class="bcard ${locked?'no':ok?'ok':''}" onclick="doBuild('${k}')">
+      <div class="bct"><span class="bci">${bd.i}</span><span class="bcn">${bd.n}</span></div>
+      <div class="bcd">${bd.desc}</div><div class="bcc">⛓ ${bd.ch}</div>
+      <div class="bcco">${fmtCost(bd.cost)}${locked?` 🔒Lv${bd.ul}`:''}</div></div>`;}).join('');
+}
+
+function doBuild(k){
+  if(S.sel===null||S.grid[S.sel])return;
+  const bd=B[k];if(!canAfford(bd.cost)){notify('⚠ Не вистачає: '+fmtCost(bd.cost));return;}
+  Object.entries(bd.cost).forEach(([r,v])=>S[r]-=v);
+  S.grid[S.sel]={t:k,lv:1};S.built++;
+  if(Math.random()<.18)dropSeed();
+  notify('✅ '+bd.n+' збудовано!');
+  S.sel=null;renderBuild();renderRes();
+}
+
+function renderInfo(i){
+  const b=S.grid[i];if(!b)return;
+  const bd=B[b.t];const uc=Math.floor(50*Math.pow(2,b.lv-1));
+  document.getElementById('icontent').innerHTML=`<div class="ibox">
+    <div class="it">${bd.i} ${bd.n} · Lv${b.lv}</div>
+    <div class="ir">⚙️ Виробництво: <strong>${bd.cy}</strong></div>
+    <div class="ir">⛓ ${bd.ch}</div>
+    ${Object.keys(bd.cons).length?`<div class="ir">🔻 Споживає: <strong>${fmtCost(bd.cons)}/цикл</strong></div>`:''}
+    <div class="ir">${bd.desc}</div>
+    <div class="ibtns">
+      <button class="ibtn ibtn-u" onclick="doUpg(${i})" ${b.lv>=3||S.terra<uc?'disabled':''}>⬆ Lv${b.lv+1} · 💰${uc}</button>
+      <button class="ibtn ibtn-d" onclick="doDel(${i})">🗑 Знести</button>
+    </div></div>`;
+}
+function doUpg(i){const b=S.grid[i];const uc=Math.floor(50*Math.pow(2,b.lv-1));if(b.lv>=3){notify('MAX!');return;}if(S.terra<uc){notify('⚠ 💰'+uc);return;}S.terra-=uc;b.lv++;notify('⬆ Lv'+b.lv+'!');renderRes();renderInfo(i);}
+function doDel(i){const ref=Math.floor(B[S.grid[i].t].cost.terra*.5);S.terra+=ref;S.grid[i]=null;S.sel=null;notify('🗑 Знесено +💰'+ref);renderRes();sp('build');renderBuild();}
+
+function renderChain(){
+  document.getElementById('panel-chain').innerHTML=`
+    <div class="cv"><div class="cvt">🌿 Конопляний ланцюжок</div>
+      <div class="cvr"><span class="cvn">🌿 Ферма</span><span class="cva">→</span><span class="cvn">🌱 Насіння</span><span class="cva">→</span><span class="cvn">⚙️ Прес → 🧵+🫗</span></div>
+      <div class="cvr"><span class="cvn">🧵 Волокно</span><span class="cva">→</span><span class="cvn">Канати · Тканина · Пластик</span></div>
+      <div class="cvr"><span class="cvn">🫗 Олія</span><span class="cva">→</span><span class="cvn">Ліки · Фарба · Лак</span></div>
+    </div>
+    <div class="cv"><div class="cvt">🌻🌽🐝 Агро-екосистема</div>
+      <div class="cvr"><span class="cvn">🌻 Соняшник</span><span class="cva">→</span><span class="cvn">🫗 Олія · 🍞 Їжа</span></div>
+      <div class="cvr"><span class="cvn">🌽 Кукурудза</span><span class="cva">→</span><span class="cvn">🍞 Їжа → 👥 Населення → 💰</span></div>
+      <div class="cvr"><span class="cvn">🐝 Пасіка</span><span class="cva">→</span><span class="cvn">💰+🍞 Мед</span></div>
+      <div class="cvr"><span class="cvn">🪴 Теплиця</span><span class="cva">→</span><span class="cvn">🍞+🌱 (цілорічно)</span></div>
+    </div>
+    <div class="cv"><div class="cvt">🌿 NFT Насіння → TON</div>
+      <div class="cvr"><span class="cvn">🫙 Банк насіння</span><span class="cva">→</span><span class="cvn">🌟 Рідкісні сорти</span><span class="cva">→</span><span class="cvn">NFT Getgems.io</span></div>
     </div>`;
 }
-function upgradeBuilding(tileIdx){
-  const b=state.grid[tileIdx];
-  const cost=Math.floor(50*Math.pow(2,b.level-1));
-  if(state.terra<cost){showNotif('⚠ Потрібно '+cost+' 💰');return;}
-  if(b.level>=3){showNotif('Максимальний рівень!');return;}
-  state.terra-=cost;
-  b.level++;
-  showNotif('⬆ Апгрейд до Lv'+b.level+'!');
-  renderGrid();renderResBar();renderInfo(tileIdx);
-}
-function demolish(tileIdx){
-  const b=state.grid[tileIdx];
-  const refund=Math.floor(BUILDINGS[b.type].cost.terra*0.5);
-  state.terra+=refund;
-  if(b.type==='lab')state.labs=Math.max(0,state.labs-1);
-  state.grid[tileIdx]=null;
-  state.selectedTile=null;
-  showNotif('🗑 Знесено · +'+refund+'💰 повернуто');
-  renderGrid();renderResBar();
-  switchPanel('build');
+
+function dropSeed(){const s=RARE[Math.floor(Math.random()*RARE.length)];const ex=S.rareSeeds.find(x=>x.id===s.id);if(ex)ex.cnt=(ex.cnt||1)+1;else S.rareSeeds.push({...s,cnt:1});notify('🌟 '+s.n+'!');}
+function renderSeeds(){
+  document.getElementById('scontent').innerHTML=`
+    <div style="background:rgba(15,45,5,.85);border:1px solid rgba(90,180,40,.3);border-radius:8px;padding:9px;margin-bottom:6px;">
+      <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#90c030;margin-bottom:3px;">🌿 Колекція Насіння</div>
+      <div style="font-size:8px;color:rgba(130,190,60,.6);margin-bottom:7px;">Рідкісне насіння — майбутні NFT на TON · Getgems.io</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">${S.rareSeeds.length
+        ?S.rareSeeds.map(s=>`<div style="background:rgba(255,255,255,.05);border:1px solid rgba(190,150,35,.28);border-radius:7px;padding:3px 6px;display:flex;align-items:center;gap:4px;"><span>${s.i}</span><div><div style="font-size:9px;color:#c8a858">${s.n} ×${s.cnt}</div><div style="font-size:7px;color:${s.c}">${s.r}</div></div></div>`).join('')
+        :'<span style="color:rgba(130,190,60,.3);font-size:9px;font-style:italic">Будуй і грай!</span>'}</div></div>`;
 }
 
-// ═══════════════════════════════════════════════
-//  SEEDS PANEL
-// ═══════════════════════════════════════════════
-function dropRareSeed(){
-  const seed=RARE_SEEDS[Math.floor(Math.random()*RARE_SEEDS.length)];
-  if(!state.seeds_collected.find(s=>s.id===seed.id)){
-    state.seeds_collected.push({...seed, count:1});
-  } else {
-    state.seeds_collected.find(s=>s.id===seed.id).count++;
-  }
-  showNotif('🌟 Рідкісне насіння: '+seed.name+'!');
-}
-function renderSeedsPanel(){
-  const el=document.getElementById('seedCollection');
-  if(!state.seeds_collected.length){
-    el.innerHTML='<div style="color:rgba(255,255,255,0.5);font-size:11px;font-style:italic;">Побудуй Банк насіння або нові будівлі щоб отримати рідкісне насіння 🌱</div>';
-    return;
-  }
-  el.innerHTML=state.seeds_collected.map(s=>`
-    <div class="seed-item">
-      <span>${s.icon}</span>
-      <div>
-        <div style="font-size:11px;color:var(--cream)">${s.name} ×${s.count}</div>
-        <div class="seed-rarity" style="color:${s.color}">${s.rarity}</div>
-      </div>
-    </div>`).join('');
-}
-
-// ═══════════════════════════════════════════════
-//  STATS PANEL
-// ═══════════════════════════════════════════════
 function renderStats(){
-  const builtCount=state.grid.filter(Boolean).length;
-  const aps=calcAutoPerCycle();
-  document.getElementById('statsGrid').innerHTML=`
-    <div class="stat-c"><div class="stat-c-label">💰 Всього зароблено</div><div class="stat-c-val gold">${fmt(state.totalTerra)}</div></div>
-    <div class="stat-c"><div class="stat-c-label">🔄 Цикли</div><div class="stat-c-val">${state.cycles}</div></div>
-    <div class="stat-c"><div class="stat-c-label">🏗 Будівель</div><div class="stat-c-val">${builtCount}</div></div>
-    <div class="stat-c"><div class="stat-c-label">👥 Населення</div><div class="stat-c-val">${state.population}</div></div>
-    <div class="stat-c"><div class="stat-c-label">⚡ Терра/цикл</div><div class="stat-c-val">${fmt(aps)}</div></div>
-    <div class="stat-c"><div class="stat-c-label">🌿 Рідк.насіння</div><div class="stat-c-val">${state.seeds_collected.length}</div></div>
-  `;
+  const built=S.grid.filter(Boolean).length;
+  const aps=S.grid.reduce((s,b)=>{if(!b)return s;return s+(B[b.t]?.prod?.terra||0)*b.lv;},0)+S.population*.5;
+  const sName={spring:'Весна🌸',summer:'Літо🌞',autumn:'Осінь🍂',winter:'Зима❄️'}[season];
+  const wName={clear:'Ясно☀️',rain:'Дощ🌧️',fog:'Туман🌫️'}[weather];
+  document.getElementById('sgrid').innerHTML=[
+    {l:'💰 Зароблено',v:fmt(S.totalTerra),g:true},{l:'🔄 Циклів',v:S.cycles},
+    {l:'🏗 Будівель',v:built},{l:'👥 Населення',v:S.population},
+    {l:'⚡ Терра/цикл',v:fmt(aps),g:true},{l:'🌟 NFT насіння',v:S.rareSeeds.length},
+    {l:'🍂 Сезон',v:sName},{l:'🌤️ Погода',v:wName},
+  ].map(s=>`<div class="sbox"><div class="sbl">${s.l}</div><div class="sbv${s.g?' g':''}" style="font-size:${s.v.length>8?'12px':'18px'}">${s.v}</div></div>`).join('');
 }
 
-// ═══════════════════════════════════════════════
-//  PRODUCTION CYCLE
-// ═══════════════════════════════════════════════
-function calcAutoPerCycle(){
-  let t=0;
-  state.grid.forEach(b=>{if(!b)return;const bd=BUILDINGS[b.type];if(bd.produces.terra)t+=bd.produces.terra*b.level;});
-  t+=state.population*0.5;
-  return t;
+const PANELS=['build','info','chain','seeds','stats'];
+function sp(n){
+  document.querySelectorAll('.btab').forEach((t,i)=>t.classList.toggle('active',PANELS[i]===n));
+  PANELS.forEach(p=>document.getElementById('panel-'+p).style.display=p===n?'':'none');
+  if(n==='build')renderBuild();if(n==='chain')renderChain();
+  if(n==='seeds')renderSeeds();if(n==='stats')renderStats();
 }
 
+// ═══════════ CYCLE ═══════════
 function runCycle(){
-  state.cycles++;
-  const mult=state.boostActive&&Date.now()<state.boostEnd?2:1;
-  const energyBonus=state.energy>=2?1.5:1;
-
-  state.grid.forEach((b,idx)=>{
-    if(!b)return;
-    const bd=BUILDINGS[b.type];
-    const lvl=b.level;
-
-    // Check if can consume
-    const canRun=Object.entries(bd.consumes).every(([k,v])=>(state[k]||0)>=v*lvl);
-
-    if(canRun){
-      // Consume
-      Object.entries(bd.consumes).forEach(([k,v])=>state[k]=Math.max(0,(state[k]||0)-v));
-
-      // Produce
-      Object.entries(bd.produces).forEach(([k,v])=>{
-        const amount=Math.floor(v*lvl*mult*energyBonus);
-        if(k==='rare_seed'&&Math.random()<v*lvl*mult){
-          dropRareSeed();
-        } else if(k!=='rare_seed'){
-          state[k]=(state[k]||0)+amount;
-          if(k==='terra'){state.totalTerra+=amount;}
-        }
-      });
-
-      // Animate tile
-      const tileEl=document.getElementById('cityGrid')?.children[idx];
-      if(tileEl){tileEl.classList.add('producing');setTimeout(()=>tileEl.classList.remove('producing'),400);}
-    }
+  S.cycles++;const mult=S.boost&&Date.now()<S.boostEnd?2:1;const eb=S.energy>=2?1.5:1;
+  const seasonBonus=season==='spring'?1.2:season==='winter'?.7:1;
+  S.grid.forEach(b=>{
+    if(!b)return;const bd=B[b.t];
+    const ok=Object.entries(bd.cons).every(([k,v])=>(S[k]||0)>=v);if(!ok)return;
+    Object.entries(bd.cons).forEach(([k,v])=>S[k]=Math.max(0,(S[k]||0)-v));
+    Object.entries(bd.prod).forEach(([k,v])=>{
+      if(k==='rare_seed'){if(Math.random()<v*b.lv*mult)dropSeed();}
+      else{const am=Math.floor(v*b.lv*mult*eb*seasonBonus);S[k]=(S[k]||0)+am;if(k==='terra')S.totalTerra+=am;}
+    });
   });
-
-  // Population bonus
-  if(state.population>0){
-    const popBonus=Math.floor(state.population*0.5*mult);
-    state.terra+=popBonus;
-    state.totalTerra+=popBonus;
-  }
-
-  // Clamp negatives
-  Object.keys(state).forEach(k=>{if(typeof state[k]==='number'&&state[k]<0)state[k]=0;});
-
-  // Random rare seed
-  if(Math.random()<0.05*state.grid.filter(b=>b&&b.type==='seed_bank').length){
-    dropRareSeed();
-  }
-
-  renderResBar();
-  renderStats();
-  if(document.getElementById('panel-seeds').style.display!=='none')renderSeedsPanel();
+  if(S.population>0){const pb=Math.floor(S.population*.5*mult);S.terra+=pb;S.totalTerra+=pb;}
+  Object.keys(S).forEach(k=>{if(typeof S[k]==='number'&&S[k]<0)S[k]=0;});
+  renderRes();
 }
 
-// ═══════════════════════════════════════════════
-//  CYCLE TIMER
-// ═══════════════════════════════════════════════
-const CYCLE_SEC=5;
-let countdown=CYCLE_SEC;
-setInterval(()=>{
-  countdown--;
-  document.getElementById('cycleTimer').textContent=countdown;
-  if(countdown<=0){
-    countdown=CYCLE_SEC;
-    runCycle();
-  }
-},1000);
+const CYC=5;let cd=CYC;
+setInterval(()=>{cd--;document.getElementById('ct').textContent=cd;if(cd<=0){cd=CYC;runCycle();}},1000);
 
-// ═══════════════════════════════════════════════
-//  TABS
-// ═══════════════════════════════════════════════
-const PANELS=['build','info','seeds','stats'];
-function switchPanel(name){
-  document.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('active',PANELS[i]===name));
-  PANELS.forEach(p=>{document.getElementById('panel-'+p).style.display=p===name?'':'none';});
-  if(name==='build')renderBuildGrid();
-  if(name==='seeds')renderSeedsPanel();
-  if(name==='stats')renderStats();
-}
-
-// ═══════════════════════════════════════════════
-//  STARS
-// ═══════════════════════════════════════════════
 function buyStars(){
-  if(!tg||!tg.openInvoice){activateBoost();return;}
-  tg.openInvoice({
-    title:'Зоряний Буст',description:'+200 Терра + ×2 виробництво 60 сек',
-    payload:'city_boost',provider_token:'',currency:'XTR',
-    prices:[{label:'Зоряний Буст',amount:50}]
-  },s=>{if(s==='paid')activateBoost();});
+  if(!tgApp?.openInvoice){activateBoost();return;}
+  tgApp.openInvoice({title:'Зоряний Буст',description:'+200💰 ×2 60сек',payload:'boost',provider_token:'',currency:'XTR',prices:[{label:'Буст',amount:50}]},s=>{if(s==='paid')activateBoost();});
 }
-function activateBoost(){
-  state.terra+=200;state.totalTerra+=200;
-  state.boostActive=true;state.boostEnd=Date.now()+60000;
-  showNotif('⭐ БУСТ АКТИВОВАНО — 60 СЕК ×2!');
-  setTimeout(()=>{state.boostActive=false;showNotif('⏰ Буст завершено');},60000);
-  renderResBar();
-}
+function activateBoost(){S.terra+=200;S.totalTerra+=200;S.boost=true;S.boostEnd=Date.now()+60000;notify('⭐ БУСТ ×2 — 60 СЕК!');setTimeout(()=>{S.boost=false;notify('⏰ Буст завершено');},60000);renderRes();}
 
-// ═══════════════════════════════════════════════
-//  SAVE / LOAD
-// ═══════════════════════════════════════════════
-function save(){
-  try{
-    localStorage.setItem('khutor_city',JSON.stringify({
-      terra:state.terra,seeds:state.seeds,fiber:state.fiber,oil:state.oil,
-      food:state.food,population:state.population,energy:state.energy,
-      medicine_base:state.medicine_base,totalTerra:state.totalTerra,
-      cycles:state.cycles,buildCount:state.buildCount,
-      grid:state.grid,seeds_collected:state.seeds_collected,labs:state.labs
-    }));
-  }catch(e){}
-}
-function load(){
-  try{
-    const d=JSON.parse(localStorage.getItem('khutor_city')||'null');
-    if(!d)return;
-    Object.assign(state,d);
-  }catch(e){}
-}
+function save(){try{localStorage.setItem('kh5',JSON.stringify({terra:S.terra,seeds:S.seeds,fiber:S.fiber,oil:S.oil,food:S.food,population:S.population,energy:S.energy,medicine_base:S.medicine_base,totalTerra:S.totalTerra,cycles:S.cycles,built:S.built,grid:S.grid,rareSeeds:S.rareSeeds,seasonIdx}));}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem('kh5')||'null');if(d){Object.assign(S,d);if(d.seasonIdx!==undefined){seasonIdx=d.seasonIdx;season=SEASONS[seasonIdx];}}}catch(e){}}
 
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
-load();
-renderGrid();
-renderResBar();
-renderBuildGrid();
-renderStats();
-setInterval(save,10000);
+load();renderRes();renderBuild();loop();setInterval(save,8000);
 </script>
 </body>
 </html>
