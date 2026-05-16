@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
@@ -10,7 +10,13 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;background:#000;max-width:430px;margin:0 auto;}
 body{display:flex;flex-direction:column;}
-.app{display:flex;flex-direction:column;height:100vh;}
+.app{
+  display:flex;flex-direction:column;height:100vh;
+  padding-top:env(safe-area-inset-top);
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+  padding-bottom:env(safe-area-inset-bottom);
+}
 canvas{display:block;}
 #panoCanvas{width:100%;flex-shrink:0;}
 .topbar{background:rgba(8,5,0,0.97);border-bottom:2px solid rgba(140,100,30,0.6);padding:4px 8px 5px;flex-shrink:0;}
@@ -59,10 +65,10 @@ canvas{display:block;}
 .sbox{background:rgba(255,255,255,0.04);border:1px solid rgba(180,140,60,0.18);border-radius:8px;padding:7px 9px;}
 .sbl{font-size:8px;color:rgba(180,140,60,0.45);text-transform:uppercase;letter-spacing:1px;}
 .sbv{font-family:'Russo One',sans-serif;font-size:18px;color:#70b020;margin-top:1px;}.sbv.g{color:#d09020;}
-.sbar{background:rgba(50,5,5,0.95);border-top:1px solid rgba(200,140,30,0.25);padding:6px 8px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.sbt{flex:1;font-size:8px;color:rgba(230,170,70,0.75);line-height:1.4;}
-.sbt strong{color:#d09020;font-family:'Playfair Display',serif;font-size:11px;display:block;}
-.sbb{background:linear-gradient(135deg,#d09020,#906010);border:1px solid #e0b020;border-radius:7px;padding:6px 10px;color:#100600;font-family:'Russo One',sans-serif;font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.sbar{background:rgba(60,8,8,0.98);border-top:2px solid rgba(240,180,30,0.6);padding:8px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;min-height:48px;}
+.sbt{flex:1;font-size:9px;color:rgba(240,190,80,0.85);line-height:1.4;}
+.sbt strong{color:#e8b030;font-family:'Playfair Display',serif;font-size:12px;display:block;}
+.sbb{background:linear-gradient(135deg,#e8b030,#a07010);border:2px solid #f0c840;border-radius:10px;padding:8px 14px;color:#0a0500;font-family:'Russo One',sans-serif;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-weight:bold;box-shadow:0 0 12px rgba(240,180,30,0.4);}
 .notif{position:fixed;top:10px;left:50%;z-index:9999;transform:translateX(-50%) translateY(-70px);background:rgba(10,5,0,0.97);border:2px solid #d09020;border-radius:9px;padding:6px 14px;font-size:10px;color:#c8a860;transition:transform 0.3s;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,0.8);}
 .notif.show{transform:translateX(-50%) translateY(0);}
 </style>
@@ -213,7 +219,16 @@ S.grid[2]={t:'sunflower',lv:1};
 S.grid[17]={t:'beehive',lv:1};
 
 const tgApp=window.Telegram?.WebApp;
-if(tgApp){tgApp.ready();tgApp.expand();}
+if(tgApp){
+  tgApp.ready();tgApp.expand();
+  tgApp.disableVerticalSwipes?.();
+  const sa=tgApp.safeAreaInset||{top:0,bottom:0,left:0,right:0};
+  const appEl=document.querySelector('.app');
+  if(appEl){
+    if(sa.top>0)appEl.style.paddingTop=sa.top+'px';
+    if(sa.bottom>0)appEl.style.paddingBottom=sa.bottom+'px';
+  }
+}
 
 // ═══════════ HELPERS ═══════════
 function fmt(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.floor(n)+'';}
@@ -992,8 +1007,23 @@ const CYC=5;let cd=CYC;
 setInterval(()=>{cd--;document.getElementById('ct').textContent=cd;if(cd<=0){cd=CYC;runCycle();}},1000);
 
 function buyStars(){
-  if(!tgApp?.openInvoice){activateBoost();return;}
-  tgApp.openInvoice({title:'Зоряний Буст',description:'+200💰 ×2 60сек',payload:'boost',provider_token:'',currency:'XTR',prices:[{label:'Буст',amount:50}]},s=>{if(s==='paid')activateBoost();});
+  if(!tgApp){notify('⚠ Відкрий в Telegram!');return;}
+  if(!tgApp.openInvoice){
+    notify('⭐ Stars: скоро! Зараз активую буст');
+    activateBoost();return;
+  }
+  tgApp.openInvoice({
+    title:'Зоряний Буст',
+    description:'+200💰 ×2 виробництво на 60 сек',
+    payload:'boost_60s',
+    provider_token:'',
+    currency:'XTR',
+    prices:[{label:'Зоряний Буст',amount:50}]
+  },status=>{
+    if(status==='paid')activateBoost();
+    else if(status==='cancelled')notify('❌ Оплату скасовано');
+    else if(status==='failed')notify('⚠ Помилка оплати');
+  });
 }
 function activateBoost(){S.terra+=200;S.totalTerra+=200;S.boost=true;S.boostEnd=Date.now()+60000;notify('⭐ БУСТ ×2 — 60 СЕК!');setTimeout(()=>{S.boost=false;notify('⏰ Буст завершено');},60000);renderRes();}
 
