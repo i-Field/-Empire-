@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
@@ -1007,23 +1007,24 @@ const CYC=5;let cd=CYC;
 setInterval(()=>{cd--;document.getElementById('ct').textContent=cd;if(cd<=0){cd=CYC;runCycle();}},1000);
 
 function buyStars(){
-  if(!tgApp){notify('⚠ Відкрий в Telegram!');return;}
-  if(!tgApp.openInvoice){
-    notify('⭐ Stars: скоро! Зараз активую буст');
-    activateBoost();return;
+  const inTelegram=!!window.Telegram?.WebApp?.initData;
+  if(inTelegram&&tgApp?.openInvoice){
+    tgApp.openInvoice({
+      title:'Зоряний Буст',
+      description:'+200💰 ×2 виробництво на 60 сек',
+      payload:'boost_60s',
+      provider_token:'',
+      currency:'XTR',
+      prices:[{label:'Зоряний Буст',amount:50}]
+    },status=>{
+      if(status==='paid')activateBoost();
+      else if(status==='cancelled')notify('❌ Скасовано');
+      else notify('⚠ Помилка: '+status);
+    });
+  } else {
+    // Поза Telegram або Stars не підключені — даємо буст безкоштовно для тесту
+    activateBoost();
   }
-  tgApp.openInvoice({
-    title:'Зоряний Буст',
-    description:'+200💰 ×2 виробництво на 60 сек',
-    payload:'boost_60s',
-    provider_token:'',
-    currency:'XTR',
-    prices:[{label:'Зоряний Буст',amount:50}]
-  },status=>{
-    if(status==='paid')activateBoost();
-    else if(status==='cancelled')notify('❌ Оплату скасовано');
-    else if(status==='failed')notify('⚠ Помилка оплати');
-  });
 }
 function activateBoost(){S.terra+=200;S.totalTerra+=200;S.boost=true;S.boostEnd=Date.now()+60000;notify('⭐ БУСТ ×2 — 60 СЕК!');setTimeout(()=>{S.boost=false;notify('⏰ Буст завершено');},60000);renderRes();}
 
