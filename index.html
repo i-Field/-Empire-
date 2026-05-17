@@ -1129,10 +1129,85 @@ function buyStars(){
 }
 function activateBoost(){soundBoost();S.terra+=200;S.totalTerra+=200;S.boost=true;S.boostEnd=Date.now()+60000;notify('⭐ БУСТ ×2 — 60 СЕК!');setTimeout(()=>{S.boost=false;notify('⏰ Буст завершено');},60000);renderRes();}
 
-function save(){try{localStorage.setItem('kh5',JSON.stringify({terra:S.terra,seeds:S.seeds,fiber:S.fiber,oil:S.oil,food:S.food,population:S.population,energy:S.energy,medicine_base:S.medicine_base,totalTerra:S.totalTerra,cycles:S.cycles,built:S.built,grid:S.grid,rareSeeds:S.rareSeeds,seasonIdx}));}catch(e){}}
-function load(){try{const d=JSON.parse(localStorage.getItem('kh5')||'null');if(d){Object.assign(S,d);if(d.seasonIdx!==undefined){seasonIdx=d.seasonIdx;season=SEASONS[seasonIdx];}}}catch(e){}}
+// ═══ CLOUD STORAGE ═══
+function saveLocal(){
+  try{localStorage.setItem('kh5',JSON.stringify({
+    terra:S.terra,seeds:S.seeds,fiber:S.fiber,oil:S.oil,
+    food:S.food,population:S.population,energy:S.energy,
+    medicine_base:S.medicine_base,totalTerra:S.totalTerra,
+    cycles:S.cycles,built:S.built,grid:S.grid,
+    rareSeeds:S.rareSeeds,seasonIdx
+  }));}catch(e){}
+}
 
-load();renderRes();renderBuild();loop();setInterval(save,8000);
+function save(){
+  saveLocal(); // завжди зберігаємо локально
+  if(!tgApp?.CloudStorage)return;
+  // Ресурси
+  const res=JSON.stringify({
+    terra:S.terra,seeds:S.seeds,fiber:S.fiber,oil:S.oil,
+    food:S.food,population:S.population,energy:S.energy,
+    medicine_base:S.medicine_base,totalTerra:S.totalTerra,
+    cycles:S.cycles,built:S.built,seasonIdx
+  });
+  // Сітка міста
+  const grid=JSON.stringify(S.grid);
+  // Рідкісне насіння
+  const seeds=JSON.stringify(S.rareSeeds);
+  
+  tgApp.CloudStorage.setItem('kh5_res',res);
+  tgApp.CloudStorage.setItem('kh5_grid',grid);
+  tgApp.CloudStorage.setItem('kh5_seeds',seeds);
+}
+
+function load(){
+  // Спочатку пробуємо CloudStorage
+  if(tgApp?.CloudStorage){
+    tgApp.CloudStorage.getItems(['kh5_res','kh5_grid','kh5_seeds'],(err,vals)=>{
+      if(err||!vals||!vals.kh5_res){
+        loadLocal(); // fallback
+        return;
+      }
+      try{
+        const res=JSON.parse(vals.kh5_res||'{}');
+        Object.assign(S,res);
+        if(res.seasonIdx!==undefined){
+          seasonIdx=res.seasonIdx;
+          season=SEASONS[seasonIdx];
+        }
+        if(vals.kh5_grid)S.grid=JSON.parse(vals.kh5_grid);
+        if(vals.kh5_seeds)S.rareSeeds=JSON.parse(vals.kh5_seeds);
+        notify('☁️ Прогрес завантажено з хмари!');
+      }catch(e){loadLocal();}
+      renderRes();renderBuild();
+    });
+  } else {
+    loadLocal();
+  }
+}
+
+function loadLocal(){
+  try{
+    const d=JSON.parse(localStorage.getItem('kh5')||'null');
+    if(d){
+      Object.assign(S,d);
+      if(d.seasonIdx!==undefined){
+        seasonIdx=d.seasonIdx;
+        season=SEASONS[seasonIdx];
+      }
+    }
+  }catch(e){}
+}
+
+// Ініціалізація
+if(tgApp?.CloudStorage){
+  // Async load з хмари, потім рендер
+  load();
+  setTimeout(()=>{renderRes();renderBuild();},500);
+} else {
+  load();renderRes();renderBuild();
+}
+loop();setInterval(save,10000);
 </script>
 </body>
 </html>
