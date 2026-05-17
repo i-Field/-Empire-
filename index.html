@@ -954,6 +954,7 @@ function drawPano(){
 
 // ═══════════ GAME LOOP ═══════════
 function loop(){
+  try{
   frame++;beeAngle+=.028;
 
   // Panorama
@@ -977,9 +978,7 @@ function loop(){
   drawRain();
   drawFog();
 
-  // Ambient sounds
-  if(weather==='rain')soundRain();
-  if(getNightFactor()>.5)soundNight();
+  } catch(e){ console.warn('Loop error:',e); }
   requestAnimationFrame(loop);
 }
 
@@ -1207,7 +1206,15 @@ if(tgApp?.CloudStorage){
 } else {
   load();renderRes();renderBuild();
 }
-loop();setInterval(save,10000);
+loop();
+setInterval(save,10000);
+// Ambient sounds (not in loop - prevents browser issues)
+setInterval(()=>{
+  try{
+    if(weather==='rain')soundRain();
+    if(getNightFactor()>.5)soundNight();
+  }catch(e){}
+},2000);
 </script>
 </body>
 </html>
