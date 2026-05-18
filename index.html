@@ -12,7 +12,7 @@ html,body{height:100%;overflow:hidden;background:#000;max-width:430px;margin:0 a
 body{display:flex;flex-direction:column;}
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
 canvas{display:block;}
-#panoCanvas{width:100%;flex-shrink:0;}
+#panoCanvas{width:100%;flex-shrink:0;height:100px;display:block;}
 .topbar{
   background:rgba(6,4,0,0.98);border-bottom:2px solid rgba(160,120,30,0.7);
   padding:6px 10px 7px;flex-shrink:0;
@@ -31,8 +31,8 @@ canvas{display:block;}
 .rbar::-webkit-scrollbar{display:none;}
 .rc{display:flex;align-items:center;gap:3px;flex-shrink:0;background:rgba(255,255,255,0.07);border:1.5px solid rgba(200,160,50,0.35);border-radius:16px;padding:3px 8px;}
 .ri{font-size:14px;}.rv{font-family:'Russo One',sans-serif;font-size:13px;color:#e8c860;font-weight:700;}
-.gwrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:#000;}
-#gameCanvas{cursor:pointer;}
+.gwrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;position:relative;background:#000;min-height:0;}
+#gameCanvas{cursor:pointer;display:block;width:100%;max-width:430px;}
 .stars-bar{
   background:rgba(30,10,0,0.98);
   border-top:2.5px solid rgba(240,170,20,0.7);
@@ -111,7 +111,7 @@ canvas{display:block;}
 <div class="topbar">
   <div class="tb1">
     <div class="logo">🌿 <em>Хутор</em> EMPIRE</div>
-    <div class="topinfo">
+    <div class="topinfo"><button id="musicBtn" onclick="toggleMusic()" style="background:rgba(30,60,0,0.8);border:1.5px solid rgba(100,180,20,0.5);border-radius:20px;padding:3px 8px;color:#a0d040;font-size:14px;cursor:pointer;">🎵</button>
       <div class="dayinfo" id="dayInfo">🌅 РАНОК</div>
       <div class="cpill"><span style="font-size:8px;color:rgba(255,255,255,0.4)">цикл</span><span class="cnum" id="ct">5</span></div>
     </div>
@@ -145,69 +145,401 @@ canvas{display:block;}
 </div>
 <div class="notif" id="notif"></div>
 <script>
-// ═══ AUDIO ENGINE ═══
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let audioCtx = null;
-function getAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); return audioCtx; }
 
-function playTone(freq, type, duration, vol=0.3, delay=0){
+// ══════════════════════════════════════════
+//  🎵 ХУТОР AUDIO ENGINE — Chill Dub/Reggae
+// ══════════════════════════════════════════
+let audioCtxMain = null;
+let masterGain = null;
+let musicPlaying = false;
+let musicTimer = null;
+let audioUnlocked = false;
+
+function getCtx(){
+  if(!audioCtxMain) audioCtxMain = new (window.AudioContext||window.webkitAudioContext)();
+  if(!masterGain){
+    masterGain = audioCtxMain.createGain();
+    masterGain.gain.value = 0.22;
+    masterGain.connect(audioCtxMain.destination);
+  }
+  return audioCtxMain;
+}
+
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  try{ getCtx().resume(); startAmbient(); } catch(e){}
+}
+
+// ── БАЗОВІ ГЕНЕРАТОРИ ──────────────────────
+function createNoise(ctx, duration){
+  const buf = ctx.createBuffer(1, ctx.sampleRate*duration, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  return buf;
+}
+
+function playOsc(freq, type, start, dur, vol=0.15, dest=null){
   try{
-    const ctx = getAudio();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = type; osc.frequency.value = freq;
-    const t = ctx.currentTime + delay;
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(vol, t + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-    osc.start(t); osc.stop(t + duration);
-  } catch(e){}
+    const ctx=getCtx();
+    const osc=ctx.createOscillator();
+    const g=ctx.createGain();
+    osc.type=type; osc.frequency.value=freq;
+    osc.connect(g); g.connect(dest||masterGain);
+    g.gain.setValueAtTime(0,start);
+    g.gain.linearRampToValueAtTime(vol,start+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,start+dur);
+    osc.start(start); osc.stop(start+dur);
+  }catch(e){}
 }
 
-function soundClick(){
-  playTone(400,'sine',0.06,0.15);
+function playNoise(start, dur, freqBP, Q=1, vol=0.1){
+  try{
+    const ctx=getCtx();
+    const src=ctx.createBufferSource();
+    src.buffer=createNoise(ctx,dur);
+    const f=ctx.createBiquadFilter();
+    f.type='bandpass'; f.frequency.value=freqBP; f.Q.value=Q;
+    const g=ctx.createGain();
+    src.connect(f); f.connect(g); g.connect(masterGain);
+    g.gain.setValueAtTime(0,start);
+    g.gain.linearRampToValueAtTime(vol,start+0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001,start+dur);
+    src.start(start); src.stop(start+dur);
+  }catch(e){}
 }
+
+// ── 🎵 CHILL DUB MUSIC ────────────────────
+// Cm - Fm - Bb - Gm  (75 BPM, reggae feel)
+const BPM=75;
+const BEAT=60/BPM;
+
+// Ноти (Hz) для акордів
+const CHORDS = {
+  Cm: [130.8,155.6,196.0], // C3 Eb3 G3
+  Fm: [174.6,207.7,261.6], // F3 Ab3 C4
+  Bb: [116.5,146.8,174.6], // Bb2 D3 F3
+  Gm: [98.0,116.5,146.8],  // G2 Bb2 D3
+};
+const CHORD_SEQ = ['Cm','Cm','Fm','Fm','Bb','Gm','Cm','Cm'];
+const BASS_NOTES = {
+  Cm:[65.4,65.4], Fm:[87.3,87.3], Bb:[58.3,58.3], Gm:[49.0,49.0]
+};
+
+function scheduleBar(startTime, barIndex){
+  if(!musicPlaying) return;
+  const chord = CHORDS[CHORD_SEQ[barIndex%8]];
+  const bass  = BASS_NOTES[CHORD_SEQ[barIndex%8]];
+
+  // Pad (warm chord every bar)
+  chord.forEach((f,i)=>{
+    playOsc(f,'triangle',startTime,BEAT*4*0.95,0.06);
+    // Harmony overtone
+    playOsc(f*2,'sine',startTime+BEAT*0.1,BEAT*3.5,0.02);
+  });
+
+  // Bass (reggae: beat 1 and 3, with skank feel)
+  [0,2,3.5].forEach((offset,i)=>{
+    if(bass[0]) playOsc(bass[0],'sine',startTime+BEAT*offset,BEAT*0.35,0.28);
+  });
+
+  // Sub bass
+  playOsc(bass[0]*0.5,'sine',startTime,BEAT*0.8,0.12);
+
+  // Reggae "skank" (muted chord stabs on offbeat 2 and 4)
+  [1.5, 3.5].forEach(offset=>{
+    chord.forEach(f=>playOsc(f,'square',startTime+BEAT*offset,BEAT*0.15,0.03));
+  });
+
+  // Hi-hat (noise filtered)
+  [0,0.5,1,1.5,2,2.5,3,3.5].forEach(offset=>{
+    playNoise(startTime+BEAT*offset, 0.08, 8000, 0.8, offset%1===0?0.06:0.03);
+  });
+
+  // Kick (low noise burst)
+  [0, 2].forEach(offset=>{
+    playNoise(startTime+BEAT*offset, 0.15, 80, 0.5, 0.12);
+    playOsc(55,'sine',startTime+BEAT*offset,0.12,0.18);
+  });
+
+  // Snare (beat 2 and 4)
+  [1,3].forEach(offset=>{
+    playNoise(startTime+BEAT*offset, 0.1, 1500, 0.3, 0.08);
+    playOsc(200,'triangle',startTime+BEAT*offset,0.05,0.06);
+  });
+
+  // Melodic lead (random pentatonic notes over chord)
+  if(barIndex%2===0){
+    const penta=[130.8,155.6,196,261.6,293.7];
+    const note=penta[Math.floor(Math.random()*penta.length)];
+    const t2=startTime+BEAT*(1+Math.random()*2);
+    playOsc(note*2,'sine',t2,BEAT*0.4,0.07);
+  }
+
+  // Schedule next bar
+  musicTimer = setTimeout(()=>scheduleBar(startTime+BEAT*4, barIndex+1), (BEAT*4-0.1)*1000);
+}
+
+function startAmbient(){
+  if(musicPlaying||!audioCtxMain) return;
+  musicPlaying=true;
+  scheduleBar(audioCtxMain.currentTime+0.1, 0);
+  // Start nature ambiance
+  startNature();
+}
+
+function stopAmbient(){
+  musicPlaying=false;
+  clearTimeout(musicTimer);
+}
+
+// ── 🐦🐝 NATURE SOUNDS ────────────────────
+
+function soundBird(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    // Two-note chirp
+    const osc=ctx.createOscillator(),g=ctx.createGain();
+    osc.type='sine'; osc.connect(g); g.connect(masterGain);
+    osc.frequency.setValueAtTime(2200,t);
+    osc.frequency.setValueAtTime(2800,t+0.06);
+    osc.frequency.setValueAtTime(2400,t+0.12);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.12,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+    osc.start(t); osc.stop(t+0.18);
+    // Echo
+    setTimeout(()=>{
+      const o2=ctx.createOscillator(),g2=ctx.createGain();
+      o2.type='sine'; o2.frequency.value=2600; o2.connect(g2); g2.connect(masterGain);
+      g2.gain.setValueAtTime(0,ctx.currentTime);
+      g2.gain.linearRampToValueAtTime(0.05,ctx.currentTime+0.01);
+      g2.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.1);
+      o2.start(); o2.stop(ctx.currentTime+0.1);
+    },200);
+  }catch(e){}
+}
+
+function soundBees(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    // AM oscillator = buzz
+    const carr=ctx.createOscillator();
+    const mod=ctx.createOscillator();
+    const modG=ctx.createGain();
+    const g=ctx.createGain();
+    carr.type='sawtooth'; carr.frequency.value=180;
+    mod.type='sine'; mod.frequency.value=120;
+    modG.gain.value=80;
+    mod.connect(modG); modG.connect(carr.frequency);
+    carr.connect(g); g.connect(masterGain);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.18,t+0.1);
+    g.gain.setValueAtTime(0.18,t+0.5);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.8);
+    carr.start(t); carr.stop(t+0.8);
+    mod.start(t); mod.stop(t+0.8);
+  }catch(e){}
+}
+
+function soundWind(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    const src=ctx.createBufferSource();
+    src.buffer=createNoise(ctx,1.2);
+    src.loop=false;
+    const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=600;
+    const g=ctx.createGain();
+    src.connect(lp); lp.connect(g); g.connect(masterGain);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.18,t+0.3);
+    g.gain.setValueAtTime(0.18,t+0.7); g.gain.exponentialRampToValueAtTime(0.0001,t+1.2);
+    src.start(t); src.stop(t+1.2);
+  }catch(e){}
+}
+
+function soundLeaves(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    const src=ctx.createBufferSource();
+    src.buffer=createNoise(ctx,0.6);
+    const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3000; bp.Q.value=0.5;
+    const g=ctx.createGain();
+    src.connect(bp); bp.connect(g); g.connect(masterGain);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.12,t+0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.6);
+    src.start(t); src.stop(t+0.6);
+  }catch(e){}
+}
+
+function soundCrickets(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    [3800,4000,4200].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='square'; o.frequency.value=f;
+      o.connect(g); g.connect(masterGain);
+      g.gain.setValueAtTime(0,t+i*0.06);
+      g.gain.linearRampToValueAtTime(0.025,t+i*0.06+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.06+0.05);
+      o.start(t+i*0.06); o.stop(t+i*0.06+0.05);
+    });
+  }catch(e){}
+}
+
+function soundFire(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    const src=ctx.createBufferSource();
+    src.buffer=createNoise(ctx,0.8);
+    const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=400;
+    const g=ctx.createGain();
+    src.connect(lp); lp.connect(g); g.connect(masterGain);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.14,t+0.1);
+    g.gain.setValueAtTime(0.14,t+0.4); g.gain.exponentialRampToValueAtTime(0.0001,t+0.8);
+    src.start(t); src.stop(t+0.8);
+    // Crackle pops
+    [0.1,0.3,0.5,0.65].forEach(d=>{
+      playNoise(t+d,0.03,2000,0.3,0.05);
+    });
+  }catch(e){}
+}
+
+function soundMachine(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    [0,0.1,0.2,0.35].forEach((d,i)=>{
+      playOsc(80+i*20,'square',t+d,0.08,0.12);
+      playNoise(t+d,0.05,500,0.5,0.08);
+    });
+  }catch(e){}
+}
+
+function soundWhoosh(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    const osc=ctx.createOscillator(), g=ctx.createGain();
+    osc.type='sine'; osc.connect(g); g.connect(masterGain);
+    osc.frequency.setValueAtTime(300,t);
+    osc.frequency.exponentialRampToValueAtTime(100,t+0.4);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.2,t+0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.4);
+    osc.start(t); osc.stop(t+0.4);
+    soundNoise_low();
+  }catch(e){}
+}
+
+function soundNoise_low(){
+  playNoise(getCtx().currentTime,0.4,300,0.8,0.08);
+}
+
+function soundBubbles(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    [0,0.08,0.16,0.26].forEach((d,i)=>{
+      const f=600+i*150;
+      playOsc(f,'sine',t+d,0.12,0.08);
+    });
+  }catch(e){}
+}
+
+function soundElectric(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    const osc=ctx.createOscillator(), g=ctx.createGain();
+    osc.type='sawtooth'; osc.frequency.value=60;
+    osc.connect(g); g.connect(masterGain);
+    g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.3);
+    osc.start(t); osc.stop(t+0.3);
+    playNoise(t,0.3,3000,2,0.04);
+  }catch(e){}
+}
+
+function soundCoin(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    [1047,1319,1568].forEach((f,i)=>playOsc(f,'sine',t+i*0.06,0.15,0.15));
+  }catch(e){}
+}
+
 function soundBuild(){
-  // Ascending arpeggio
-  [300,400,500,700].forEach((f,i)=>playTone(f,'sine',0.12,0.25,i*0.08));
-}
-function soundHarvest(){
-  // Coin ping
-  playTone(880,'sine',0.08,0.2);
-  playTone(1100,'sine',0.06,0.15,0.05);
-}
-function soundBoost(){
-  // Power up sweep
-  const ctx = getAudio();
   try{
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(200, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.4);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    osc.start(); osc.stop(ctx.currentTime + 0.5);
-  } catch(e){}
+    [261,330,392,523].forEach((f,i)=>playOsc(f,'triangle',getCtx().currentTime+i*0.1,0.25,0.2));
+  }catch(e){}
 }
-function soundNight(){
-  // Cricket chirp
-  if(Math.random() > 0.97){
-    playTone(3000,'square',0.04,0.03);
-    playTone(3200,'square',0.04,0.03,0.05);
+
+function soundBoost(){
+  try{
+    const ctx=getCtx(), t=ctx.currentTime;
+    const osc=ctx.createOscillator(), g=ctx.createGain();
+    osc.type='sawtooth';
+    osc.frequency.setValueAtTime(200,t);
+    osc.frequency.exponentialRampToValueAtTime(900,t+0.5);
+    osc.connect(g); g.connect(masterGain);
+    g.gain.setValueAtTime(0.25,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.6);
+    osc.start(t); osc.stop(t+0.6);
+    [0.1,0.2,0.35].forEach(d=>playOsc(523+d*100,'sine',t+d,0.1,0.12));
+  }catch(e){}
+}
+
+// ── TILE SOUND MAP ────────────────────────
+function soundForTile(type){
+  if(!audioUnlocked) return;
+  switch(type){
+    case 'hemp_farm':   soundWind(); setTimeout(soundLeaves,200); break;
+    case 'beehive':     soundBees(); break;
+    case 'sunflower':   soundWind(); soundBird(); break;
+    case 'corn_field':  soundLeaves(); soundWind(); break;
+    case 'poppy':       soundWind(); break;
+    case 'house':       soundFire(); break;
+    case 'press':       soundMachine(); break;
+    case 'mill':        soundWhoosh(); break;
+    case 'solar':       soundElectric(); break;
+    case 'pharma':
+    case 'lab':         soundBubbles(); break;
+    case 'market':      soundCoin(); break;
+    case 'greenhouse':  soundLeaves(); soundBubbles(); break;
+    case 'rope':
+    case 'textile':
+    case 'bioplastic':  soundMachine(); break;
+    case null:          soundLeaves(); break; // empty tile
+    default:            soundMachine();
   }
 }
-function soundRain(){
-  // Gentle rain tick
-  if(Math.random() > 0.95){
-    playTone(200 + Math.random()*100,'sine',0.03,0.04);
+
+// ── AMBIENT NATURE ────────────────────────
+function startNature(){
+  // Random birds
+  function randomBird(){
+    if(audioUnlocked && !isNight()) soundBird();
+    setTimeout(randomBird, 3000+Math.random()*8000);
   }
+  // Random crickets at night
+  function randomCrickets(){
+    if(audioUnlocked && getNightFactor()>0.5) soundCrickets();
+    setTimeout(randomCrickets, 1500+Math.random()*3000);
+  }
+  // Random bees near hive
+  function randomBees(){
+    if(audioUnlocked && S.grid.some(b=>b&&b.t==='beehive')){
+      soundBees();
+    }
+    setTimeout(randomBees, 4000+Math.random()*6000);
+  }
+  setTimeout(randomBird,2000);
+  setTimeout(randomCrickets,3000);
+  setTimeout(randomBees,5000);
 }
-function soundSeason(){
-  [261,330,392,523].forEach((f,i)=>playTone(f,'sine',0.2,0.2,i*0.12));
+
+function isNight(){ const t=getGameTime(); return t<0.2||t>0.8; }
+
+// ── MUSIC TOGGLE UI ───────────────────────
+let musicOn = true;
+function toggleMusic(){
+  unlockAudio();
+  musicOn = !musicOn;
+  if(musicOn){ startAmbient(); }
+  else { stopAmbient(); }
+  document.getElementById('musicBtn').textContent = musicOn ? '🎵' : '🔇';
 }
+
 
 const pano=document.getElementById('panoCanvas'),pc=pano.getContext('2d');
 const game=document.getElementById('gameCanvas'),gc=game.getContext('2d');
@@ -215,8 +547,12 @@ const COLS=5,ROWS=4;let TW=76;
 function resize(){
   const aw=Math.min(window.innerWidth,430);
   TW=Math.floor(aw/COLS);
-  game.width=COLS*TW;game.height=ROWS*TW;
+  game.width=COLS*TW;
+  game.height=ROWS*TW;
+  game.style.width=game.width+'px';
+  game.style.height=game.height+'px';
   pano.width=aw;
+  pano.height=100;
 }
 resize();
 
@@ -993,7 +1329,7 @@ function getTileIdx(cx2,cy2){
 }
 game.addEventListener('touchstart',e=>{e.preventDefault();const idx=getTileIdx(e.touches[0].clientX,e.touches[0].clientY);if(idx>=0)tapTile(idx);},{passive:false});
 game.addEventListener('click',e=>{const idx=getTileIdx(e.clientX,e.clientY);if(idx>=0)tapTile(idx);});
-function tapTile(i){soundClick();S.sel=i;if(S.grid[i]){sp('info');renderInfo(i);}else{sp('build');renderBuild();}}
+function tapTile(i){unlockAudio();soundForTile(S.grid[i]?S.grid[i].t:null);S.sel=i;if(S.grid[i]){sp('info');renderInfo(i);}else{sp('build');renderBuild();}}
 
 // ═══════════ UI FUNCTIONS ═══════════
 function renderRes(){document.getElementById('rbar').innerHTML=RD.map(r=>`<div class="rc"><span class="ri">${r.i}</span><span class="rv">${fmt(S[r.k]||0)}</span></div>`).join('');}
@@ -1013,7 +1349,7 @@ function doBuild(k){
   const bd=B[k];if(!canAfford(bd.cost)){notify('⚠ Не вистачає: '+fmtCost(bd.cost));return;}
   Object.entries(bd.cost).forEach(([r,v])=>S[r]-=v);
   S.grid[S.sel]={t:k,lv:1};S.built++;
-  if(Math.random()<.18)dropSeed();soundClick();
+  if(Math.random()<.18)dropSeed();soundBuild();
   soundBuild();notify('✅ '+bd.n+' збудовано!');
   S.sel=null;renderBuild();renderRes();
 }
@@ -1095,7 +1431,7 @@ function runCycle(){
     Object.entries(bd.cons).forEach(([k,v])=>S[k]=Math.max(0,(S[k]||0)-v));
     Object.entries(bd.prod).forEach(([k,v])=>{
       if(k==='rare_seed'){if(Math.random()<v*b.lv*mult)dropSeed();}
-      else{const am=Math.floor(v*b.lv*mult*eb*seasonBonus);S[k]=(S[k]||0)+am;if(k==='terra'&&am>0){S.totalTerra+=am;if(Math.random()<.3)soundHarvest();}else if(k!=='terra'){}}
+      else{const am=Math.floor(v*b.lv*mult*eb*seasonBonus);S[k]=(S[k]||0)+am;if(k==='terra'&&am>0){S.totalTerra+=am;if(Math.random()<.3)soundCoin();}else if(k!=='terra'){}}
     });
   });
   if(S.population>0){const pb=Math.floor(S.population*.5*mult);S.terra+=pb;S.totalTerra+=pb;}
@@ -1198,6 +1534,10 @@ function loadLocal(){
   }catch(e){}
 }
 
+// Unlock audio on any touch
+document.addEventListener('touchstart', unlockAudio, {once:true});
+document.addEventListener('click', unlockAudio, {once:true});
+
 // Ініціалізація
 if(tgApp?.CloudStorage){
   // Async load з хмари, потім рендер
@@ -1208,13 +1548,7 @@ if(tgApp?.CloudStorage){
 }
 loop();
 setInterval(save,10000);
-// Ambient sounds (not in loop - prevents browser issues)
-setInterval(()=>{
-  try{
-    if(weather==='rain')soundRain();
-    if(getNightFactor()>.5)soundNight();
-  }catch(e){}
-},2000);
+
 </script>
 </body>
 </html>
