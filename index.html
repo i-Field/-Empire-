@@ -691,12 +691,15 @@ function drawTile(idx,sunX){
   const {x:cx,y:cy}=hexCenter(col,row);
   const r=HEX_R-1;
   const TW2=r*2;
-  // Clip to hex shape for drawing
+  const x=cx-r,y=cy-r;
+  // Draw hex background first
+  hexPath(gc,cx,cy,r);
+  gc.fillStyle=sgnd();
+  gc.fill();
+  // Clip to hex
   gc.save();
   hexPath(gc,cx,cy,r);
   gc.clip();
-  // Draw content in bounding box
-  const x=cx-r,y=cy-r;
   const b=S.grid[idx];
   try{
     if(b){
@@ -722,7 +725,7 @@ function drawTile(idx,sunX){
       gc.fillStyle='rgba(0,0,0,.52)';gc.fillRect(cx-r,cy+r-14,r*2,14);
       gc.fillStyle='#b0f048';gc.font='8px sans-serif';gc.textAlign='center';gc.textBaseline='bottom';gc.fillText(B[b.t]?.cy||'',cx,cy+r-1);
     } else drawEmpty(gc,cx-r,cy-r,TW2,frame);
-  }catch(e){gc.fillStyle='#1a2a0a';hexPath(gc,cx,cy,r);gc.fill();}
+  }catch(e){console.warn('tile '+idx+':',e?.message);}
   gc.restore(); // end clip
   // Draw hex border on top
   hexPath(gc,cx,cy,r);
