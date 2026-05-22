@@ -57,7 +57,7 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;}
   height:90px;}
 .pano-wrap.hidden .pano-canvas-wrap{height:0;}
 .game-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;
-  overflow:hidden;position:relative;background:#1a3a0a;min-height:0;}
+  overflow:visible;position:relative;background:#1a3a0a;min-height:0;}
 #gameCanvas{display:block;cursor:pointer;flex-shrink:0;}
 
 /* STARS BAR */
@@ -940,6 +940,8 @@ function load(){
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem('kh6')||'null');if(d){Object.assign(S,d);if(d.seasonIdx!==undefined){seasonIdx=d.seasonIdx;season=SEASONS[seasonIdx];}}}catch(e){}}
 
 // ═══ INIT ═══
+// Re-run resize after fonts/layout settle
+window.addEventListener('load',()=>{resize();});
 document.addEventListener('touchstart',unlockAudio,{once:true});
 document.addEventListener('click',unlockAudio,{once:true});
 load();
