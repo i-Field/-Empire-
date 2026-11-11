@@ -46,7 +46,7 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .bottom.open{transform:translateX(-50%) translateY(0);}
 .btabs{display:flex;border-bottom:1px solid rgba(200,160,50,.2);position:relative;overflow-x:auto;scrollbar-width:none;}
 .btabs::-webkit-scrollbar{display:none;}
-.btab{flex:1;padding:8px 2px;text-align:center;font-size:9px;font-weight:700;color:rgba(200,160,50,.5);cursor:pointer;font-family:'Russo One',sans-serif;transition:color .2s;min-width:65px;}
+.btab{flex:1;padding:8px 2px;text-align:center;font-size:9px;font-weight:700;color:rgba(200,160,50,.5);cursor:pointer;font-family:'Russo One',sans-serif;transition:color .2s;min-width:60px;}
 .btab .bi{display:block;font-size:14px;margin-bottom:2px;}
 .btab.active{background:rgba(30,60,0,.8);color:#a0d040;border-bottom:2px solid #70b020;}
 .close-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(200,160,50,.5);cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.06);border-radius:8px;border:none;z-index:10;}
@@ -80,7 +80,7 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .notif{position:fixed;top:14px;left:50%;z-index:9999;transform:translateX(-50%) translateY(-80px);background:rgba(10,5,0,.98);border:2px solid #e0a020;border-radius:10px;padding:9px 18px;font-size:12px;font-weight:700;color:#d8b850;font-family:'Russo One',sans-serif;transition:transform .3s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.8);}
 .notif.show{transform:translateX(-50%) translateY(0);}
 
-/* WHEEL OF FORTUNE */
+/* MODALS */
 .wheel-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(4px);}
 .wheel-modal.open{display:flex;}
 .wheel-box{background:#1a0f05;border:3px solid #e0a020;border-radius:20px;padding:20px;text-align:center;width:90%;max-width:340px;box-shadow:0 0 40px rgba(240,180,30,0.3);position:relative;}
@@ -92,6 +92,13 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .wheel-spin-btn{background:linear-gradient(135deg,#ffcc00,#e6a800);color:#000;font-family:'Russo One',sans-serif;font-size:18px;padding:12px 30px;border-radius:30px;border:3px solid #fff;cursor:pointer;box-shadow:0 4px 15px rgba(255,204,0,0.5);transition:transform 0.1s;}
 .wheel-spin-btn:active{transform:scale(0.95);}
 .wheel-spin-btn:disabled{background:#555;color:#aaa;border-color:#777;box-shadow:none;}
+
+/* LEADERBOARD */
+.lead-row{display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,.05);border-radius:8px;margin-bottom:5px;border:1px solid rgba(200,160,50,.2);}
+.lead-row.me{border-color:#a0d040;background:rgba(50,100,0,.3);}
+.lead-rank{font-family:'Russo One';font-size:14px;color:#e0a020;width:30px;}
+.lead-name{font-family:'Russo One';font-size:12px;color:#d8c060;flex:1;margin-left:10px;}
+.lead-score{font-family:'Russo One';font-size:14px;color:#80c030;}
 </style>
 </head>
 <body>
@@ -131,14 +138,14 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
       <div class="btab active" id="tab-build" onclick="sp('build')"><span class="bi">🏗️</span><span id="tab-t-build">Будувати</span></div>
       <div class="btab" id="tab-info" onclick="sp('info')"><span class="bi">📍</span><span id="tab-t-info">Будівля</span></div>
       <div class="btab" id="tab-quests" onclick="sp('quests')"><span class="bi">🎯</span><span id="tab-t-quests">Квести</span></div>
-      <div class="btab" id="tab-chain" onclick="sp('chain')"><span class="bi">⛓️</span><span id="tab-t-chain">Ланцюг</span></div>
+      <div class="btab" id="tab-top" onclick="sp('top')"><span class="bi">🏆</span><span id="tab-t-top">ТОП-10</span></div>
       <div class="btab" id="tab-stats" onclick="sp('stats')"><span class="bi">📊</span><span id="tab-t-stats">Місто</span></div>
     </div>
     <div class="bc">
       <div id="panel-build"><div class="bgrid" id="bgrid"></div></div>
       <div id="panel-info" style="display:none"><div id="icontent"></div></div>
       <div id="panel-quests" style="display:none"></div>
-      <div id="panel-chain" style="display:none"></div>
+      <div id="panel-top" style="display:none"><div id="lead-list" style="padding:5px 0;"><p style="text-align:center;color:#a09060;">Завантаження...</p></div></div>
       <div id="panel-stats" style="display:none"><div class="sgrid" id="sgrid"></div></div>
     </div>
   </div>
@@ -158,6 +165,17 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
   </div>
 </div>
 
+<!-- OFFLINE MODAL -->
+<div class="wheel-modal" id="offlineModal">
+  <div class="wheel-box" style="border-color:#70b020; box-shadow:0 0 40px rgba(100,180,20,0.4);">
+    <div class="wheel-title" style="color:#a0d040;">🎁 ФЕРМА ПРАЦЮВАЛА!</div>
+    <div style="font-size:40px; margin:10px 0;">🌿</div>
+    <div style="color:#d8c060; font-size:14px; margin-bottom:15px;">Поки тебе не було, твої робітники зібрали врожай:</div>
+    <div style="font-family:'Russo One'; font-size:28px; color:#f0c030; margin-bottom:20px; text-shadow:0 0 10px rgba(240,192,48,0.5);">+<span id="offlineAmount">0</span> 💰</div>
+    <button class="wheel-spin-btn" style="background:linear-gradient(135deg,#a0d040,#5a9a20); color:#000;" onclick="claimOffline()">ЗАБРАТИ!</button>
+  </div>
+</div>
+
 <script>
 'use strict';
 const API_URL = "https://empire.qx420.workers.dev";
@@ -174,30 +192,9 @@ const gc = game.getContext('2d');
 
 let currentLang = localStorage.getItem('kh_lang') || 'ua';
 const TEXTS = {
-  ua: {
-    panoTitle: "🌿 ХУТІР RASTAMANIA", boostTitle: "ЗОРЯНИЙ БУСТ", boostDesc: "+200💰 · ×2 · 60с",
-    tabs: { build: "Будувати", info: "Будівля", quests: "Квести", chain: "Ланцюг", stats: "Місто" },
-    notEnough: "⚠ Не вистачає: ", built: "✅ збудовано!", upgraded: "⬆ Апгрейд!",
-    demolished: "🗑 Знесено +", maxLvl: "МАКС РІВЕНЬ", saveOk: "☁️ Збережено",
-    selectTile: "Обери клітинку", seasons: { spring: "🌸 Весна", summer: "🌞 Літо", autumn: "🍂 Осінь", winter: "❄️ Зима" },
-    stats: { earned: "💰 Зароблено", cycles: "🔄 Циклів", built: "🏗 Будівель", pop: "👥 Населення" }
-  },
-  ru: {
-    panoTitle: "🌿 ХУТОР RASTAMANIA", boostTitle: "ЗВЕЗДНЫЙ БУСТ", boostDesc: "+200💰 · ×2 · 60с",
-    tabs: { build: "Строить", info: "Здание", quests: "Квесты", chain: "Цепочка", stats: "Город" },
-    notEnough: "⚠ Не хватает: ", built: "✅ построено!", upgraded: "⬆ Апгрейд!",
-    demolished: "🗑 Снесено +", maxLvl: "МАКС УРОВЕНЬ", saveOk: "☁️ Сохранено",
-    selectTile: "Выбери клетку", seasons: { spring: "🌸 Весна", summer: "🌞 Лето", autumn: "🍂 Осень", winter: "❄️ Зима" },
-    stats: { earned: "💰 Заработано", cycles: "🔄 Циклов", built: "🏗 Зданий", pop: "👥 Население" }
-  },
-  en: {
-    panoTitle: "🌿 RASTAMANIA FARM", boostTitle: "STAR BOOST", boostDesc: "+200💰 · ×2 · 60s",
-    tabs: { build: "Build", info: "Building", quests: "Quests", chain: "Chain", stats: "City" },
-    notEnough: "⚠ Not enough: ", built: "✅ built!", upgraded: "⬆ Upgraded!",
-    demolished: "🗑 Demolished +", maxLvl: "MAX LEVEL", saveOk: "☁️ Saved",
-    selectTile: "Select a tile", seasons: { spring: "🌸 Spring", summer: "🌞 Summer", autumn: "🍂 Autumn", winter: "❄️ Winter" },
-    stats: { earned: "💰 Earned", cycles: "🔄 Cycles", built: "🏗 Buildings", pop: "👥 Population" }
-  }
+  ua: { panoTitle: "🌿 ХУТІР RASTAMANIA", boostTitle: "ЗОРЯНИЙ БУСТ", boostDesc: "+200💰 · ×2 · 60с", tabs: { build: "Будувати", info: "Будівля", quests: "Квести", top: "ТОП-10", chain: "Ланцюг", stats: "Місто" }, notEnough: "⚠ Не вистачає: ", built: "✅ збудовано!", upgraded: "⬆ Апгрейд!", demolished: "🗑 Знесено +", maxLvl: "МАКС РІВЕНЬ", saveOk: "☁️ Збережено", selectTile: "Обери клітинку", seasons: { spring: "🌸 Весна", summer: "🌞 Літо", autumn: "🍂 Осінь", winter: "❄️ Зима" }, stats: { earned: "💰 Зароблено", cycles: "🔄 Циклів", built: "🏗 Будівель", pop: "👥 Населення" } },
+  ru: { panoTitle: "🌿 ХУТОР RASTAMANIA", boostTitle: "ЗВЕЗДНЫЙ БУСТ", boostDesc: "+200💰 · ×2 · 60с", tabs: { build: "Строить", info: "Здание", quests: "Квесты", top: "ТОП-10", chain: "Цепочка", stats: "Город" }, notEnough: "⚠ Не хватает: ", built: "✅ построено!", upgraded: "⬆ Апгрейд!", demolished: "🗑 Снесено +", maxLvl: "МАКС УРОВЕНЬ", saveOk: "☁️ Сохранено", selectTile: "Выбери клетку", seasons: { spring: "🌸 Весна", summer: "🌞 Лето", autumn: "🍂 Осень", winter: "❄️ Зима" }, stats: { earned: "💰 Заработано", cycles: "🔄 Циклов", built: "🏗 Зданий", pop: "👥 Население" } },
+  en: { panoTitle: "🌿 RASTAMANIA FARM", boostTitle: "STAR BOOST", boostDesc: "+200💰 · ×2 · 60s", tabs: { build: "Build", info: "Building", quests: "Quests", top: "TOP-10", chain: "Chain", stats: "City" }, notEnough: "⚠ Not enough: ", built: "✅ built!", upgraded: "⬆ Upgraded!", demolished: "🗑 Demolished +", maxLvl: "MAX LEVEL", saveOk: "☁️ Saved", selectTile: "Select a tile", seasons: { spring: "🌸 Spring", summer: "🌞 Summer", autumn: "🍂 Autumn", winter: "❄️ Winter" }, stats: { earned: "💰 Earned", cycles: "🔄 Cycles", built: "🏗 Buildings", pop: "👥 Population" } }
 };
 const L = TEXTS[currentLang];
 
@@ -219,7 +216,7 @@ function updateUI() {
   document.getElementById('tab-t-build').textContent = l.tabs.build;
   document.getElementById('tab-t-info').textContent = l.tabs.info;
   document.getElementById('tab-t-quests').textContent = l.tabs.quests;
-  document.getElementById('tab-t-chain').textContent = l.tabs.chain;
+  document.getElementById('tab-t-top').textContent = l.tabs.top;
   document.getElementById('tab-t-stats').textContent = l.tabs.stats;
   if(!S.sel) document.getElementById('icontent').innerHTML = `<p style="text-align:center;color:rgba(200,160,50,.35);padding:18px 0;font-style:italic">${l.selectTile}</p>`;
 }
@@ -298,8 +295,7 @@ const RD = [{k:'terra',i:'💰'},{k:'seeds',i:'🌱'},{k:'fiber',i:'🧵'},{k:'o
 const SEASONS = ['spring','summer','autumn','winter'];
 
 let seasonIdx = 1, season = 'summer', weather = 'clear';
-let S = { terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0, totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0, lastSpin: 0, grid: Array(20).fill(null), sel: null, rareSeeds: [], quests: { q_build: 0, q_earn: 0, q_spin: 0, claimed: [] }, refBonus: false };
-
+let S = { terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0, totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0, lastSpin: 0, lastSeen: 0, grid: Array(20).fill(null), sel: null, rareSeeds: [], quests: { q_build: 0, q_earn: 0, q_spin: 0, claimed: [] }, refBonus: false };
 let frame = 0, beeAngle = 0;
 const clouds = [{x:60,sp:.22},{x:250,sp:.15},{x:140,sp:.1}];
 const birds = [{x:-50,y:26,sp:.9,w:0},{x:-160,y:18,sp:.55,w:2},{x:-300,y:34,sp:1.1,w:4}];
@@ -418,7 +414,7 @@ function renderInfo(i) {
 function doUpg(i) { const b=S.grid[i]; const uc=Math.floor(50*Math.pow(2,b.lv-1)); if(b.lv>=3){notify(L.maxLvl);return;} if(S.terra<uc){notify('⚠ 💰'+uc);return;} S.terra-=uc; b.lv++; sBuild(); notify(L.upgraded+' Lv'+b.lv); renderRes(); renderInfo(i); }
 function doDel(i) { const ref=Math.floor(B[S.grid[i].t].cost.terra*.5); S.terra+=ref; S.grid[i]=null; S.sel=null; notify(L.demolished+'💰'+ref); renderRes(); sp('build'); renderBuild(); }
 
-const PANELS=['build','info','quests','chain','stats'];
+const PANELS=['build','info','quests','top','stats'];
 function sp(n) {
   const bottom=document.querySelector('.bottom');
   if(panelOpen && PANELS.indexOf(n)>=0) { const activePanel=PANELS[Array.from(document.querySelectorAll('.btab')).findIndex(t=>t.classList.contains('active'))]; if(activePanel===n) { closePanel(); return; } }
@@ -426,6 +422,7 @@ function sp(n) {
   PANELS.forEach(p=>document.getElementById('panel-'+p).style.display=p===n?'':' none');
   if(n==='build') renderBuild();
   if(n==='quests') renderQuests();
+  if(n==='top') fetchLeaderboard();
   if(n==='stats') { document.getElementById('sgrid').innerHTML=[{l:L.stats.earned, v:fmt(S.totalTerra), g:true},{l:L.stats.cycles, v:S.cycles},{l:L.stats.built, v:S.built},{l:L.stats.pop, v:S.population}].map(s=>`<div class="sbox"><div class="sbl">${s.l}</div><div class="sbv${s.g?' g':''}">${s.v}</div></div>`).join(''); }
 }
 function togglePano() { const wrap=document.getElementById('panoWrap'), btn=document.getElementById('panoBtn'); wrap.classList.toggle('hidden'); btn.textContent=wrap.classList.contains('hidden')?'▼':'▲'; }
@@ -465,7 +462,40 @@ function spinWheel() {
   }, 4200);
 }
 
-// QUESTS & REFERRAL
+// OFFLINE & LEADERBOARD & QUESTS
+let offlineReward = 0;
+function checkOffline() {
+  const now = Date.now(); const lastSeen = S.lastSeen || now; const diff = now - lastSeen;
+  const maxOffline = 4 * 60 * 60 * 1000; const timeToPay = Math.min(diff, maxOffline);
+  if (timeToPay > 60000) {
+    let incomePerTick = 0;
+    S.grid.forEach(b => { if (b && B[b.t] && B[b.t].prod.terra) incomePerTick += B[b.t].prod.terra * b.lv; });
+    const ticks = Math.floor(timeToPay / 5000);
+    offlineReward = incomePerTick * ticks;
+    if (offlineReward > 0) { document.getElementById('offlineAmount').textContent = fmt(offlineReward); document.getElementById('offlineModal').classList.add('open'); }
+  }
+}
+function claimOffline() {
+  if (offlineReward > 0) { S.terra += offlineReward; S.totalTerra += offlineReward; renderRes(); sCoin(); notify(`🎁 Отримано ${fmt(offlineReward)}💰!`); offlineReward = 0; }
+  document.getElementById('offlineModal').classList.remove('open');
+}
+
+async function fetchLeaderboard() {
+  const list = document.getElementById('lead-list');
+  list.innerHTML = '<p style="text-align:center;color:#a09060;">Завантаження...</p>';
+  try {
+    const res = await fetch(`${API_URL}/api/top`);
+    const data = await res.json();
+    if (data.top && data.top.length > 0) {
+      list.innerHTML = data.top.map((p, i) => {
+        const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+        const isMe = p.name === (tg?.initDataUnsafe?.user?.first_name || "Гравець");
+        return `<div class="lead-row ${isMe?'me':''}"><div class="lead-rank">${rank}</div><div class="lead-name">${p.name}</div><div class="lead-score">${fmt(p.score)} 💰</div></div>`;
+      }).join('');
+    } else { list.innerHTML = '<p style="text-align:center;color:#a09060;">Ще немає гравців у рейтингу.</p>'; }
+  } catch (e) { list.innerHTML = '<p style="text-align:center;color:#d06060;">Помилка завантаження.</p>'; }
+}
+
 const QUESTS = [ { id: 'q_build', title: 'Збудувати 2 будівлі', reward: 5, target: 2 }, { id: 'q_earn', title: 'Заробити 1000 Терри', reward: 10, target: 1000 }, { id: 'q_spin', title: 'Прокрутити колесо', reward: 15, target: 1 } ];
 function checkQuests() {
   let changed = false;
@@ -495,7 +525,7 @@ function checkReferral() {
 
 async function save() {
   if (!tg?.initData) { try { localStorage.setItem('kh6', JSON.stringify(S)); } catch(e) {} return; }
-  try { const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx, lastSpin:S.lastSpin, quests:S.quests, refBonus:S.refBonus }; await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) }); } catch(e) {}
+  try { const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx, lastSpin:S.lastSpin, lastSeen:Date.now(), quests:S.quests, refBonus:S.refBonus }; await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) }); } catch(e) {}
 }
 async function load() {
   if (!tg?.initData) { try { const d=JSON.parse(localStorage.getItem('kh6')||'null'); if(d) Object.assign(S,d); } catch(e) {} return; }
@@ -506,7 +536,7 @@ window.addEventListener('load', ()=>resize());
 document.addEventListener('touchstart', unlockAudio, {once:true});
 document.addEventListener('click', unlockAudio, {once:true});
 
-load().then(() => { updateUI(); checkReferral(); renderRes(); renderBuild(); loop(); setInterval(save, 15000); });
+load().then(() => { updateUI(); checkReferral(); checkOffline(); renderRes(); renderBuild(); loop(); setInterval(save, 15000); });
 </script>
 </body>
 </html>
