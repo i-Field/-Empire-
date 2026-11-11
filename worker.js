@@ -8,7 +8,7 @@ export default {
     };
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
 
-    // ── Установка вебхука (без токена в браузере) ──
+    // ── Установка вебхука ──
     if (url.pathname === "/api/set-webhook" && request.method === "GET") {
       const webhookUrl = `https://${url.hostname}/api/webhook`;
       const res = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/setWebhook?url=${webhookUrl}`);
@@ -68,7 +68,10 @@ export default {
         const initData = request.headers.get("X-Telegram-Init-Data") || "";
         const user = await validateInitData(initData, env.BOT_TOKEN);
         if (!user || !user.id) return json({ error: "auth failed" }, 401, cors);
+        
         const saveData = await request.json();
+        saveData.username = user.first_name || "Гравець";
+        
         await env.empire_DB.put(`user:${user.id}`, JSON.stringify(saveData));
         return json({ ok: true }, 200, cors);
       } catch (e) { return json({ error: e.message }, 500, cors); }
@@ -86,24 +89,38 @@ export default {
       } catch (e) { return json({ error: e.message }, 500, cors); }
     }
 
+    // ── ТОП-10 Игроков ──
+    if (url.pathname === "/api/top" && request.method === "GET") {
+      try {
+        const list = await env.empire_DB.list({ prefix: "user:" });
+        const players = [];
+        for (const key of list.keys) {
+          const val = await env.empire_DB.get(key.name);
+          if (val) {
+            const data = JSON.parse(val);
+            players.push({ name: data.username || "Анонім", score: data.totalTerra || 0 });
+          }
+        }
+        players.sort((a, b) => b.score - a.score);
+        return json({ top: players.slice(0, 10) }, 200, cors);
+      } catch (e) { return json({ error: e.message }, 500, cors); }
+    }
+
     // ── Webhook для Telegram ──
     if (url.pathname === "/api/webhook" && request.method === "POST") {
       const update = await request.json();
-
       if (update.message?.text === '/start') {
         await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ chat_id: update.message.from.id, text: "Привіт, капітане! Ласкаво просимо в Хутор EMPIRE 🌿. Натискай кнопку «Play ХуТоР», щоб почати!" })
         });
       }
-
       if (update.pre_checkout_query) {
         await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerPreCheckoutQuery`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pre_checkout_query_id: update.pre_checkout_query.id, ok: true })
         });
       }
-
       if (update.message?.successful_payment) {
         const userId = update.message.from.id;
         await env.empire_DB.put(`boost:${userId}`, String(Date.now() + 60000), { expirationTtl: 300 });
