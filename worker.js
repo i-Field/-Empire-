@@ -7,15 +7,18 @@ export default {
       "Access-Control-Allow-Headers": "Content-Type, X-Telegram-Init-Data"
     };
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
-// ── 0. Автоматическая установка Webhook ──
+
+    // ── Установка вебхука (без токена в браузере) ──
     if (url.pathname === "/api/set-webhook" && request.method === "GET") {
       const webhookUrl = `https://${url.hostname}/api/webhook`;
       const res = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/setWebhook?url=${webhookUrl}`);
       const data = await res.json();
       return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
     }
-    // ── 1. Валидация Telegram initData ──
+
+    // ── Валидация Telegram initData ──
     const validateInitData = async (initData, botToken) => {
+      if (!initData) return null;
       const params = new URLSearchParams(initData);
       const hash = params.get("hash");
       if (!hash) return null;
@@ -31,7 +34,7 @@ export default {
       return JSON.parse(params.get("user") || "{}");
     };
 
-    // ── 2. Создать инвойс (Оплата Stars) ──
+    // ── Создать инвойс (Оплата Stars) ──
     if (url.pathname === "/api/create-invoice" && request.method === "POST") {
       try {
         const body = await request.json();
@@ -49,92 +52,69 @@ export default {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            title: p.title,
-            description: p.desc,
-            payload: `${body.productId}:${user.id}:${Date.now()}`,
-            provider_token: "",
-            currency: "XTR",
-            prices: [{ label: p.title, amount: p.price }]
+            title: p.title, description: p.desc, payload: `${body.productId}:${user.id}:${Date.now()}`,
+            provider_token: "", currency: "XTR", prices: [{ label: p.title, amount: p.price }]
           })
         });
         const data = await inv.json();
         if (!data.ok) return json({ error: data.description }, 500, cors);
         return json({ link: data.result }, 200, cors);
-      } catch (e) {
-        return json({ error: e.message }, 500, cors);
-      }
+      } catch (e) { return json({ error: e.message }, 500, cors); }
     }
 
-    // ── 3. Сохранить прогресс ──
+    // ── Сохранить прогресс ──
     if (url.pathname === "/api/save" && request.method === "POST") {
       try {
         const initData = request.headers.get("X-Telegram-Init-Data") || "";
         const user = await validateInitData(initData, env.BOT_TOKEN);
         if (!user || !user.id) return json({ error: "auth failed" }, 401, cors);
-
         const saveData = await request.json();
         await env.empire_DB.put(`user:${user.id}`, JSON.stringify(saveData));
         return json({ ok: true }, 200, cors);
-      } catch (e) {
-        return json({ error: e.message }, 500, cors);
-      }
+      } catch (e) { return json({ error: e.message }, 500, cors); }
     }
 
-    // ── 4. Загрузить прогресс ──
+    // ── Загрузить прогресс ──
     if (url.pathname === "/api/load" && request.method === "GET") {
       try {
         const initData = request.headers.get("X-Telegram-Init-Data") || "";
         const user = await validateInitData(initData, env.BOT_TOKEN);
         if (!user || !user.id) return json({ error: "auth failed" }, 401, cors);
-
         const saved = await env.empire_DB.get(`user:${user.id}`);
         if (!saved) return json({ found: false }, 200, cors);
         return json({ found: true, data: JSON.parse(saved) }, 200, cors);
-      } catch (e) {
-        return json({ error: e.message }, 500, cors);
-      }
+      } catch (e) { return json({ error: e.message }, 500, cors); }
     }
 
-    // ── 5. Webhook для Telegram (подтверждение оплаты) ──
+    // ── Webhook для Telegram ──
     if (url.pathname === "/api/webhook" && request.method === "POST") {
       const update = await request.json();
-// Обработка команды /start
+
       if (update.message?.text === '/start') {
         await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chat_id: update.message.from.id,
-            text: "Привет, капитан! Добро пожаловать в Хутор EMPIRE 🌿. Нажми кнопку «Play ХуТоР», чтобы начать строить свою империю!"
-          })
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: update.message.from.id, text: "Привіт, капітане! Ласкаво просимо в Хутор EMPIRE 🌿. Натискай кнопку «Play ХуТоР», щоб почати!" })
         });
       }
+
       if (update.pre_checkout_query) {
         await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerPreCheckoutQuery`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pre_checkout_query_id: update.pre_checkout_query.id, ok: true })
         });
       }
 
       if (update.message?.successful_payment) {
         const userId = update.message.from.id;
-        // Записываем в базу, что юзер купил буст на 60 сек
         await env.empire_DB.put(`boost:${userId}`, String(Date.now() + 60000), { expirationTtl: 300 });
         await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ chat_id: userId, text: "⭐ Буст активовано! Твій хутір процвітає 🌿" })
         });
       }
-
       return new Response("ok");
     }
-
     return new Response("Not found", { status: 404 });
   }
 };
-
-function json(data, status, cors) {
-  return new Response(JSON.stringify(data), { status, headers: { ...cors, "Content-Type": "application/json" } });
-}
+function json(data, status, cors) { return new Response(JSON.stringify(data), { status, headers: { ...cors, "Content-Type": "application/json" } }); }
