@@ -128,6 +128,7 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
       <div class="btab active" id="tab-build" onclick="sp('build')"><span class="bi">🏗️</span><span id="tab-t-build">Будувати</span></div>
       <div class="btab" id="tab-info" onclick="sp('info')"><span class="bi">📍</span><span id="tab-t-info">Будівля</span></div>
       <div class="btab" id="tab-quests" onclick="sp('quests')"><span class="bi">🎯</span><span id="tab-t-quests">Квести</span></div>
+      <div class="btab" id="tab-shop" onclick="sp('shop')"><span class="bi">🛒</span><span id="tab-t-shop">Магазин</span></div>
       <div class="btab" id="tab-top" onclick="sp('top')"><span class="bi">🏆</span><span id="tab-t-top">ТОП-10</span></div>
       <div class="btab" id="tab-friends" onclick="sp('friends')"><span class="bi">🤝</span><span id="tab-t-friends">Друзі</span></div>
       <div class="btab" id="tab-stats" onclick="sp('stats')"><span class="bi">📊</span><span id="tab-t-stats">Місто</span></div>
@@ -136,8 +137,8 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
       <div id="panel-build"><div class="bgrid" id="bgrid"></div></div>
       <div id="panel-info" style="display:none"><div id="icontent"></div></div>
       <div id="panel-quests" style="display:none"></div>
-      <div id="panel-top" style="display:none"><div id="lead-list" style="padding:5px 0;"><p style="text-align:center;color:#a09060;">Завантаження...</p></div></div>
       <div id="panel-shop" style="display:none"></div>
+      <div id="panel-top" style="display:none"><div id="lead-list" style="padding:5px 0;"><p style="text-align:center;color:#a09060;">Завантаження...</p></div></div>
       <div id="panel-friends" style="display:none"></div>
       <div id="panel-stats" style="display:none"><div class="sgrid" id="sgrid"></div></div>
     </div>
@@ -173,9 +174,9 @@ const pano = document.getElementById('panoCanvas'), pc = pano.getContext('2d');
 const game = document.getElementById('gameCanvas'), gc = game.getContext('2d');
 
 const TEXTS = {
-  ua: { panoTitle:"🌿 ХУТІР RASTAMANIA", boostTitle:"МАГАЗИН", boostDesc:"Бонуси за Зірки", tabs:{build:"Будувати",info:"Будівля",quests:"Квести",top:"ТОП-10",friends:"Друзі",stats:"Місто"}, notEnough:"⚠ Не вистачає: ", built:"✅ збудовано!", upgraded:"⬆ Апгрейд!", demolished:"🗑 Знесено +", maxLvl:"МАКС РІВЕНЬ", saveOk:"☁️ Збережено", selectTile:"Обери клітинку", seasons:{spring:"🌸 Весна",summer:"🌞 Літо",autumn:"🍂 Осінь",winter:"❄️ Зима"}, stats:{earned:"💰 Зароблено",cycles:"🔄 Циклів",built:"🏗 Будівель",pop:"👥 Населення"} },
-  ru: { panoTitle:"🌿 ХУТОР RASTAMANIA", boostTitle:"МАГАЗИН", boostDesc:"Бонусы за Звезды", tabs:{build:"Строить",info:"Здание",quests:"Квесты",top:"ТОП-10",friends:"Друзья",stats:"Город"}, notEnough:"⚠ Не хватает: ", built:"✅ построено!", upgraded:"⬆ Апгрейд!", demolished:"🗑 Снесено +", maxLvl:"МАКС УРОВЕНЬ", saveOk:"☁️ Сохранено", selectTile:"Выбери клетку", seasons:{spring:"🌸 Весна",summer:"🌞 Лето",autumn:"🍂 Осень",winter:"❄️ Зима"}, stats:{earned:"💰 Заработано",cycles:"🔄 Циклов",built:"🏗 Зданий",pop:"👥 Население"} },
-  en: { panoTitle:"🌿 RASTAMANIA FARM", boostTitle:"SHOP", boostDesc:"Bonuses for Stars", tabs:{build:"Build",info:"Building",quests:"Quests",top:"TOP-10",friends:"Friends",stats:"City"}, notEnough:"⚠ Not enough: ", built:"✅ built!", upgraded:"⬆ Upgraded!", demolished:"🗑 Demolished +", maxLvl:"MAX LEVEL", saveOk:"☁️ Saved", selectTile:"Select a tile", seasons:{spring:"🌸 Spring",summer:"🌞 Summer",autumn:"🍂 Autumn",winter:"❄️ Winter"}, stats:{earned:"💰 Earned",cycles:"🔄 Cycles",built:"🏗 Buildings",pop:"👥 Population"} }
+  ua: { panoTitle:"🌿 ХУТІР RASTAMANIA", boostTitle:"МАГАЗИН", boostDesc:"Бонуси за Зірки", tabs:{build:"Будувати",info:"Будівля",quests:"Квести",top:"ТОП-10",friends:"Друзі",shop:"Магазин",stats:"Місто"}, notEnough:"⚠ Не вистачає: ", built:"✅ збудовано!", upgraded:"⬆ Апгрейд!", demolished:"🗑 Знесено +", maxLvl:"МАКС РІВЕНЬ", saveOk:"☁️ Збережено", selectTile:"Обери клітинку", seasons:{spring:"🌸 Весна",summer:"🌞 Літо",autumn:"🍂 Осінь",winter:"❄️ Зима"}, stats:{earned:"💰 Зароблено",cycles:"🔄 Циклів",built:"🏗 Будівель",pop:"👥 Населення"} },
+  ru: { panoTitle:"🌿 ХУТОР RASTAMANIA", boostTitle:"МАГАЗИН", boostDesc:"Бонусы за Звезды", tabs:{build:"Строить",info:"Здание",quests:"Квесты",top:"ТОП-10",friends:"Друзья",shop:"Магазин",stats:"Город"}, notEnough:"⚠ Не хватает: ", built:"✅ построено!", upgraded:"⬆ Апгрейд!", demolished:"🗑 Снесено +", maxLvl:"МАКС УРОВЕНЬ", saveOk:"☁️ Сохранено", selectTile:"Выбери клетку", seasons:{spring:"🌸 Весна",summer:"🌞 Лето",autumn:"🍂 Осень",winter:"❄️ Зима"}, stats:{earned:"💰 Заработано",cycles:"🔄 Циклов",built:"🏗 Зданий",pop:"👥 Население"} },
+  en: { panoTitle:"🌿 RASTAMANIA FARM", boostTitle:"SHOP", boostDesc:"Bonuses for Stars", tabs:{build:"Build",info:"Building",quests:"Quests",top:"TOP-10",friends:"Friends",shop:"Shop",stats:"City"}, notEnough:"⚠ Not enough: ", built:"✅ built!", upgraded:"⬆ Upgraded!", demolished:"🗑 Demolished +", maxLvl:"MAX LEVEL", saveOk:"☁️ Saved", selectTile:"Select a tile", seasons:{spring:"🌸 Spring",summer:"🌞 Summer",autumn:"🍂 Autumn",winter:"❄️ Winter"}, stats:{earned:"💰 Earned",cycles:"🔄 Cycles",built:"🏗 Buildings",pop:"👥 Population"} }
 };
 const L = TEXTS[currentLang];
 
@@ -193,6 +194,7 @@ function updateUI() {
   document.getElementById('tab-t-build').textContent = l.tabs.build;
   document.getElementById('tab-t-info').textContent = l.tabs.info;
   document.getElementById('tab-t-quests').textContent = l.tabs.quests;
+  document.getElementById('tab-t-shop').textContent = l.tabs.shop;
   document.getElementById('tab-t-top').textContent = l.tabs.top;
   document.getElementById('tab-t-friends').textContent = l.tabs.friends;
   document.getElementById('tab-t-stats').textContent = l.tabs.stats;
@@ -377,7 +379,7 @@ function renderInfo(i) {
 function doUpg(i) { const b=S.grid[i]; const uc=Math.floor(50*Math.pow(2,b.lv-1)); if(b.lv>=3){notify(L.maxLvl);return;} if(S.terra<uc){notify('⚠ 💰'+uc);return;} S.terra-=uc; b.lv++; sBuild(); notify(L.upgraded+' Lv'+b.lv); renderRes(); renderInfo(i); }
 function doDel(i) { const ref=Math.floor(B[S.grid[i].t].cost.terra*.5); S.terra+=ref; S.grid[i]=null; S.sel=null; notify(L.demolished+'💰'+ref); renderRes(); sp('build'); renderBuild(); }
 
-const PANELS=['build','info','quests','top','friends','stats'];
+const PANELS=['build','info','quests','shop','top','friends','stats'];
 function sp(n) {
   const bottom=document.querySelector('.bottom');
   if(panelOpen && PANELS.indexOf(n)>=0) { const activePanel=PANELS[Array.from(document.querySelectorAll('.btab')).findIndex(t=>t.classList.contains('active'))]; if(activePanel===n) { closePanel(); return; } }
