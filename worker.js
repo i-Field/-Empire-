@@ -98,7 +98,17 @@ export default {
     // ── 5. Webhook для Telegram (подтверждение оплаты) ──
     if (url.pathname === "/api/webhook" && request.method === "POST") {
       const update = await request.json();
-
+// Обработка команды /start
+      if (update.message?.text === '/start') {
+        await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: update.message.from.id,
+            text: "Привет, капитан! Добро пожаловать в Хутор EMPIRE 🌿. Нажми кнопку «Play ХуТоР», чтобы начать строить свою империю!"
+          })
+        });
+      }
       if (update.pre_checkout_query) {
         await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerPreCheckoutQuery`, {
           method: "POST",
