@@ -7,19 +7,16 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════ БАЗОВЫЕ СТИЛИ ═══════════════ */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;background:#1a3a0a;max-width:430px;margin:0 auto;}
 body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select:none;-webkit-user-select:none;}
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
-
-/* ═══════════════ ТОПБАР ═══════════════ */
 .topbar{background:rgba(8,5,0,.98);border-bottom:1px solid rgba(100,80,20,.4);padding:6px 10px 7px;flex-shrink:0;padding-top:max(6px,env(safe-area-inset-top));padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));}
 .tb1{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
 .logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:#a0d848;text-shadow:0 2px 4px rgba(0,0,0,0.5);}
 .logo em{color:#f0b020;font-style:italic;}
 .tb-right{display:flex;align-items:center;gap:6px;}
-.music-btn,.lang-btn{background:rgba(20,50,0,.9);border:1.5px solid rgba(100,180,20,.5);border-radius:20px;padding:3px 9px;font-size:13px;font-weight:bold;cursor:pointer;color:#a0d040;display:flex;align-items:center;justify-content:center;min-width:32px;height:26px;}
+.music-btn,.lang-btn,.wheel-btn{background:rgba(20,50,0,.9);border:1.5px solid rgba(100,180,20,.5);border-radius:20px;padding:3px 9px;font-size:13px;font-weight:bold;cursor:pointer;color:#a0d040;display:flex;align-items:center;justify-content:center;min-width:32px;height:26px;}
 .lang-btn{font-family:'Russo One',sans-serif;font-size:11px;}
 .cpill{background:rgba(20,50,0,.95);border:1.5px solid rgba(100,180,20,.6);border-radius:20px;padding:3px 10px;display:flex;align-items:center;gap:4px;}
 .cnum{font-family:'Russo One',sans-serif;font-size:14px;color:#ffe040;}
@@ -28,8 +25,6 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .rbar::-webkit-scrollbar{display:none;}
 .rc{display:flex;align-items:center;gap:3px;flex-shrink:0;background:rgba(255,255,255,.07);border:1.5px solid rgba(200,160,50,.35);border-radius:16px;padding:3px 8px;}
 .ri{font-size:14px;}.rv{font-family:'Russo One',sans-serif;font-size:12px;color:#e8c860;font-weight:700;}
-
-/* ═══════════════ ПАНОРАМА ═══════════════ */
 #panoCanvas{display:block;flex-shrink:0;background:linear-gradient(180deg,#3888d8 0%,#80bce8 60%,#5ab030 100%);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.5);}
 .pano-wrap{display:flex;flex-direction:column;flex-shrink:0;background:rgba(6,3,0,.98);padding:0 10px 6px;transition:all .3s ease;}
 .pano-wrap.hidden{padding:0 10px;}
@@ -38,12 +33,8 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .pano-close{background:rgba(255,255,255,.07);border:1px solid rgba(200,160,50,.3);border-radius:8px;padding:3px 8px;color:rgba(200,160,50,.7);font-size:13px;cursor:pointer;line-height:1;}
 .pano-canvas-wrap{display:flex;justify-content:center;overflow:hidden;transition:height .3s ease;height:90px;}
 .pano-wrap.hidden .pano-canvas-wrap{height:0;}
-
-/* ═══════════════ ИГРОВОЕ ПОЛЕ ═══════════════ */
 .game-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;overflow:visible;position:relative;background:#1a3a0a;min-height:0;}
 #gameCanvas{display:block;cursor:pointer;flex-shrink:0;}
-
-/* ═══════════════ НИЖНЯЯ ПАНЕЛЬ ═══════════════ */
 .stars-bar{background:rgba(30,8,0,.99);border-top:2.5px solid rgba(240,170,20,.7);padding:9px 12px;padding-bottom:max(9px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px;flex-shrink:0;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:99;box-shadow:0 -4px 10px rgba(0,0,0,.5);}
 .stars-info{display:flex;align-items:center;gap:8px;flex:1;}
 .stars-ico{font-size:24px;text-shadow:0 0 10px #f0c030;}
@@ -51,7 +42,6 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .stars-info span{font-size:10px;color:rgba(240,190,80,.75);}
 .stars-btn{background:linear-gradient(135deg,#f0c030,#b08010);border:2.5px solid #ffe060;border-radius:12px;padding:10px 16px;font-family:'Russo One',sans-serif;font-size:13px;font-weight:900;color:#1a0800;cursor:pointer;white-space:nowrap;box-shadow:0 0 20px rgba(240,180,30,.5);animation:spulse 3s ease-in-out infinite;}
 @keyframes spulse{0%,100%{box-shadow:0 0 20px rgba(240,180,30,.5);}50%{box-shadow:0 0 36px rgba(240,180,30,.9);}}
-
 .bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(calc(100% - 52px));bottom:64px;width:100%;max-width:430px;background:rgba(6,3,0,.99);border-top:2.5px solid rgba(160,120,30,.7);border-radius:16px 16px 0 0;display:flex;flex-direction:column;max-height:75vh;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom);transition:transform .32s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.6);padding-bottom:0;}
 .bottom.open{transform:translateX(-50%) translateY(0);}
 .btabs{display:flex;border-bottom:1px solid rgba(200,160,50,.2);position:relative;}
@@ -61,8 +51,6 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .close-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(200,160,50,.5);cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.06);border-radius:8px;border:none;}
 .bc{overflow-y:auto;flex:1;padding:7px;}
 .bottom-spacer{height:64px;flex-shrink:0;}
-
-/* ═══════════════ КАРТОЧКИ БУДИВЕЛЬ ═══════════════ */
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
 .bcard{background:rgba(255,255,255,.04);border:1.5px solid rgba(200,160,50,.25);border-radius:9px;padding:7px;cursor:pointer;transition:transform .15s,background .15s;position:relative;overflow:hidden;}
 .bcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#4a8a18;border-radius:3px 0 0 3px;}
@@ -74,8 +62,6 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .bci{font-size:20px;}.bcn{font-family:'Russo One',sans-serif;font-size:11px;color:#d8c060;}
 .bcd{font-size:9px;color:rgba(200,170,70,.65);margin-bottom:2px;line-height:1.4;}
 .bcco{font-size:10px;font-family:'Russo One',sans-serif;color:#e0a020;}
-
-/* ═══════════════ ИНФО ПАНЕЛЬ ═══════════════ */
 .ibox{background:rgba(255,255,255,.05);border:1.5px solid rgba(200,160,50,.25);border-radius:9px;padding:10px;}
 .it{font-family:'Russo One',sans-serif;font-size:14px;color:#d8c060;margin-bottom:6px;}
 .ir{font-size:10px;color:rgba(200,170,70,.8);margin-bottom:3px;}
@@ -85,36 +71,43 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .ibtn:active{transform:scale(.95);}
 .ibtn-u{background:rgba(30,70,0,.3);border-color:#5a9a20;color:#90d030;}
 .ibtn-d{background:rgba(80,10,10,.3);border-color:#8a2020;color:#d06060;}
-
-/* ═══════════════ СТАТИСТИКА ═══════════════ */
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
 .sbox{background:rgba(255,255,255,.05);border:1.5px solid rgba(200,160,50,.2);border-radius:9px;padding:8px 10px;}
 .sbl{font-size:9px;color:rgba(200,160,50,.5);text-transform:uppercase;letter-spacing:1px;font-family:'Russo One',sans-serif;}
 .sbv{font-family:'Russo One',sans-serif;font-size:20px;color:#80c030;margin-top:2px;}
 .sbv.g{color:#e0a020;}
-
-/* ═══════════════ УВЕДОМЛЕНИЯ ═══════════════ */
 .notif{position:fixed;top:14px;left:50%;z-index:9999;transform:translateX(-50%) translateY(-80px);background:rgba(10,5,0,.98);border:2px solid #e0a020;border-radius:10px;padding:9px 18px;font-size:12px;font-weight:700;color:#d8b850;font-family:'Russo One',sans-serif;transition:transform .3s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.8);}
 .notif.show{transform:translateX(-50%) translateY(0);}
+
+/* WHEEL OF FORTUNE */
+.wheel-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(4px);}
+.wheel-modal.open{display:flex;}
+.wheel-box{background:#1a0f05;border:3px solid #e0a020;border-radius:20px;padding:20px;text-align:center;width:90%;max-width:340px;box-shadow:0 0 40px rgba(240,180,30,0.3);position:relative;}
+.wheel-title{font-family:'Russo One',sans-serif;color:#f0c030;font-size:20px;margin-bottom:15px;text-shadow:0 2px 4px #000;}
+.wheel-container{position:relative;width:260px;height:260px;margin:0 auto 20px;}
+.wheel-pointer{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:35px;z-index:10;filter:drop-shadow(0 4px 4px rgba(0,0,0,0.8));}
+.wheel-img{width:100%;height:100%;border-radius:50%;border:4px solid #f0b020;box-shadow:inset 0 0 20px rgba(0,0,0,0.8),0 0 20px rgba(240,180,30,0.4);transition:transform 4s cubic-bezier(0.17,0.67,0.1,1);background:conic-gradient(#ff4d4d 0deg 45deg,#33cc33 45deg 90deg,#ffcc00 90deg 135deg,#cc33ff 135deg 180deg,#3399ff 180deg 225deg,#ff6600 225deg 270deg,#00ccff 270deg 315deg,#ff0099 315deg 360deg);}
+.wheel-close{position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:24px;color:#e0a020;cursor:pointer;}
+.wheel-spin-btn{background:linear-gradient(135deg,#ffcc00,#e6a800);color:#000;font-family:'Russo One',sans-serif;font-size:18px;padding:12px 30px;border-radius:30px;border:3px solid #fff;cursor:pointer;box-shadow:0 4px 15px rgba(255,204,0,0.5);transition:transform 0.1s;}
+.wheel-spin-btn:active{transform:scale(0.95);}
+.wheel-spin-btn:disabled{background:#555;color:#aaa;border-color:#777;box-shadow:none;}
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- ПАНОРАМА -->
   <div class="pano-wrap" id="panoWrap">
     <div class="pano-header">
-      <span class="pano-title" id="panoTitle">🌿 ХУТОР RASTAMANIA</span>
+      <span class="pano-title" id="panoTitle">🌿 ХУТІР RASTAMANIA</span>
       <button class="pano-close" onclick="togglePano()" id="panoBtn">▲</button>
     </div>
     <div class="pano-canvas-wrap"><canvas id="panoCanvas" height="90"></canvas></div>
   </div>
-
-  <!-- ТОПБАР -->
   <div class="topbar">
     <div class="tb1">
       <div class="logo">🌿 <em>Хутор</em> EMPIRE</div>
       <div class="tb-right">
         <button class="lang-btn" id="langBtn" onclick="cycleLang()">UA</button>
+        <button class="wheel-btn" onclick="openWheel()">🎡</button>
         <span class="dayinfo" id="dayInfo">🌅</span>
         <button class="music-btn" id="musicBtn" onclick="toggleMusic()">🎵</button>
         <div class="cpill"><span style="font-size:8px;color:rgba(255,255,255,.4)">цикл</span><span class="cnum" id="ct">5</span></div>
@@ -122,12 +115,8 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
     </div>
     <div class="rbar" id="rbar"></div>
   </div>
-
-  <!-- ИГРА -->
   <div class="game-wrap"><canvas id="gameCanvas"></canvas></div>
   <div class="bottom-spacer"></div>
-
-  <!-- БУСТ ЗА ЗВЕЗДЫ -->
   <div class="stars-bar">
     <div class="stars-info">
       <span class="stars-ico">⭐</span>
@@ -135,8 +124,6 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
     </div>
     <button class="stars-btn" id="boostBtn" onclick="buyStars()">50 ⭐</button>
   </div>
-
-  <!-- НИЖНЕЕ МЕНЮ -->
   <div class="bottom">
     <div class="btabs">
       <button class="close-btn" onclick="closePanel()">✕</button>
@@ -155,22 +142,33 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 </div>
 <div class="notif" id="notif"></div>
 
+<!-- WHEEL MODAL -->
+<div class="wheel-modal" id="wheelModal">
+  <div class="wheel-box">
+    <button class="wheel-close" onclick="closeWheel()">✕</button>
+    <div class="wheel-title">🎡 КОЛЕСО ФОРТУНИ</div>
+    <div class="wheel-container">
+      <div class="wheel-pointer">▼</div>
+      <div class="wheel-img" id="wheelImg"></div>
+    </div>
+    <button class="wheel-spin-btn" id="spinBtn" onclick="spinWheel()">КРУТИТИ!</button>
+  </div>
+</div>
+
 <script>
 'use strict';
-// ═══════════════ НАСТРОЙКИ ═══════════════
 const API_URL = "https://empire.qx420.workers.dev";
 const COLS = 5, ROWS = 4;
 const HEX_R = 44;
 const HEX_W = HEX_R * Math.sqrt(3);
-const DAY = 90000; // Длительность игрового дня в мс
+const DAY = 90000;
+let panelOpen = false;
 
-// ═══════════════ КАНВАСЫ ═══════════════
 const pano = document.getElementById('panoCanvas');
 const pc = pano.getContext('2d');
 const game = document.getElementById('gameCanvas');
 const gc = game.getContext('2d');
 
-// ═══════════════ МУЛЬТИЯЗЫЧНОСТЬ (i18n) ═══════════════
 let currentLang = localStorage.getItem('kh_lang') || 'ua';
 const TEXTS = {
   ua: {
@@ -205,9 +203,7 @@ function cycleLang() {
   let idx = langs.indexOf(currentLang);
   currentLang = langs[(idx + 1) % langs.length];
   localStorage.setItem('kh_lang', currentLang);
-  updateUI();
-  renderBuild(); // Перерисовываем карточки с новыми названиями
-  renderRes();
+  updateUI(); renderBuild(); renderRes();
   notify(currentLang === 'ua' ? "Мову змінено 🇺🇦" : currentLang === 'ru' ? "Язык изменен 🇷🇺" : "Language changed 🇬🇧");
 }
 
@@ -221,44 +217,16 @@ function updateUI() {
   document.getElementById('tab-t-info').textContent = l.tabs.info;
   document.getElementById('tab-t-chain').textContent = l.tabs.chain;
   document.getElementById('tab-t-stats').textContent = l.tabs.stats;
-  document.getElementById('icontent').innerHTML = `<p style="text-align:center;color:rgba(200,160,50,.35);padding:18px 0;font-style:italic">${l.selectTile}</p>`;
+  if(!S.sel) document.getElementById('icontent').innerHTML = `<p style="text-align:center;color:rgba(200,160,50,.35);padding:18px 0;font-style:italic">${l.selectTile}</p>`;
 }
 
-// ═══════════════ ЗВУКОВОЙ ДВИЖОК (WebAudio) ═══════════════
 let actx = null, mGain = null, musicOn = true, musicPlaying = false, mTimer = null, audioReady = false;
+function getA() { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (!mGain) { mGain = actx.createGain(); mGain.gain.value = 0.15; mGain.connect(actx.destination); } return actx; }
+function unlockAudio() { if (audioReady) return; audioReady = true; try { getA().resume(); if (musicOn) startMusic(); } catch (e) {} }
+function mkNoise(dur) { const a = getA(), buf = a.createBuffer(1, a.sampleRate * dur, a.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return buf; }
+function pOsc(f, t, type, dur, vol, dest) { try { const a = getA(), o = a.createOscillator(), g = a.createGain(); o.type = type || 'sine'; o.frequency.value = f; o.connect(g); g.connect(dest || mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || 0.1, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.start(t); o.stop(t + dur); } catch (e) {} }
+function pNoise(t, dur, freq, Q, vol) { try { const a = getA(), s = a.createBufferSource(); s.buffer = mkNoise(dur); const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = Q || 1; const g = a.createGain(); s.connect(f); f.connect(g); g.connect(mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || 0.08, t + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.start(t); s.stop(t + dur); } catch (e) {} }
 
-function getA() {
-  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
-  if (!mGain) { mGain = actx.createGain(); mGain.gain.value = 0.15; mGain.connect(actx.destination); }
-  return actx;
-}
-function unlockAudio() {
-  if (audioReady) return; audioReady = true;
-  try { getA().resume(); if (musicOn) startMusic(); } catch (e) {}
-}
-function mkNoise(dur) {
-  const a = getA(), buf = a.createBuffer(1, a.sampleRate * dur, a.sampleRate), d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return buf;
-}
-function pOsc(f, t, type, dur, vol, dest) {
-  try {
-    const a = getA(), o = a.createOscillator(), g = a.createGain();
-    o.type = type || 'sine'; o.frequency.value = f; o.connect(g); g.connect(dest || mGain);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || 0.1, t + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.start(t); o.stop(t + dur);
-  } catch (e) {}
-}
-function pNoise(t, dur, freq, Q, vol) {
-  try {
-    const a = getA(), s = a.createBufferSource(); s.buffer = mkNoise(dur);
-    const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = Q || 1;
-    const g = a.createGain(); s.connect(f); f.connect(g); g.connect(mGain);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || 0.08, t + 0.04);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.start(t); s.stop(t + dur);
-  } catch (e) {}
-}
-
-// Фоновая музыка
 const BPM = 70, BD = 60 / BPM;
 const CH = { Cm: [130.8, 155.6, 196], Fm: [174.6, 207.7, 261.6], Bb: [116.5, 146.8, 174.6], Gm: [98, 116.5, 146.8] };
 const CS = ['Cm', 'Cm', 'Fm', 'Fm', 'Bb', 'Gm', 'Cm', 'Cm'];
@@ -271,202 +239,67 @@ function schedBar(t, bar) {
   [0, 2, 3.5].forEach(o => pOsc(bn, t + BD * o, 'sine', BD * 0.35, 0.15));
   [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].forEach(o => pNoise(t + BD * o, 0.07, 8000, 0.8, o % 1 === 0 ? 0.03 : 0.01));
   [0, 2].forEach(o => { pNoise(t + BD * o, 0.14, 80, 0.5, 0.1); pOsc(55, t + BD * o, 'sine', 0.12, 0.1); });
-  if (bar % 2 === 0) {
-    const n = [130.8, 155.6, 196, 261.6, 293.7][Math.floor(Math.random() * 5)];
-    pOsc(n * 2, t + BD * (1 + Math.random() * 2), 'sine', BD * 0.4, 0.04);
-  }
   mTimer = setTimeout(() => schedBar(t + BD * 4, bar + 1), (BD * 4 - 0.1) * 1000);
 }
 function startMusic() { if (musicPlaying || !actx) return; musicPlaying = true; schedBar(actx.currentTime + 0.1, 0); }
 function stopMusic() { musicPlaying = false; clearTimeout(mTimer); }
-function toggleMusic() {
-  unlockAudio(); musicOn = !musicOn;
-  if (musicOn) startMusic(); else stopMusic();
-  document.getElementById('musicBtn').textContent = musicOn ? '🎵' : '🔇';
-}
+function toggleMusic() { unlockAudio(); musicOn = !musicOn; if (musicOn) startMusic(); else stopMusic(); document.getElementById('musicBtn').textContent = musicOn ? '🎵' : '🔇'; }
 
-// Звуки окружения и зданий
-function sBird() {
-  try {
-    const a = getA(), t = a.currentTime, o = a.createOscillator(), g = a.createGain();
-    o.type = 'sine'; o.connect(g); g.connect(mGain);
-    o.frequency.setValueAtTime(2200, t); o.frequency.setValueAtTime(2800, t + 0.06); o.frequency.setValueAtTime(2100, t + 0.12);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.08, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-    o.start(t); o.stop(t + 0.18);
-  } catch (e) {}
-}
-function sBees() {
-  try {
-    const a = getA(), t = a.currentTime, c = a.createOscillator(), m = a.createOscillator(), mg = a.createGain(), g = a.createGain();
-    c.type = 'sawtooth'; c.frequency.value = 180; m.type = 'sine'; m.frequency.value = 140; mg.gain.value = 60;
-    m.connect(mg); mg.connect(c.frequency); c.connect(g); g.connect(mGain);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t + 0.1); g.gain.setValueAtTime(0.2, t + 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
-    c.start(t); c.stop(t + 0.6); m.start(t); m.stop(t + 0.6);
-  } catch (e) {}
-}
-function sMachine() {
-  [0, 0.1, 0.2, 0.35].forEach((d, i) => { pOsc(80 + i * 20, getA().currentTime + d, 'square', 0.08, 0.08); pNoise(getA().currentTime + d, 0.05, 500, 0.5, 0.05); });
-}
+function sBird() { try { const a = getA(), t = a.currentTime, o = a.createOscillator(), g = a.createGain(); o.type = 'sine'; o.connect(g); g.connect(mGain); o.frequency.setValueAtTime(2200, t); o.frequency.setValueAtTime(2800, t + 0.06); o.frequency.setValueAtTime(2100, t + 0.12); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.08, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18); o.start(t); o.stop(t + 0.18); } catch (e) {} }
+function sBees() { try { const a = getA(), t = a.currentTime, c = a.createOscillator(), m = a.createOscillator(), mg = a.createGain(), g = a.createGain(); c.type = 'sawtooth'; c.frequency.value = 180; m.type = 'sine'; m.frequency.value = 140; mg.gain.value = 60; m.connect(mg); mg.connect(c.frequency); c.connect(g); g.connect(mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t + 0.1); g.gain.setValueAtTime(0.2, t + 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6); c.start(t); c.stop(t + 0.6); m.start(t); m.stop(t + 0.6); } catch (e) {} }
+function sMachine() { [0, 0.1, 0.2, 0.35].forEach((d, i) => { pOsc(80 + i * 20, getA().currentTime + d, 'square', 0.08, 0.08); pNoise(getA().currentTime + d, 0.05, 500, 0.5, 0.05); }); }
 function sCoin() { [1047, 1319, 1568].forEach((f, i) => pOsc(f, getA().currentTime + i * 0.06, 'sine', 0.15, 0.1)); }
 function sBuild() { [261, 330, 392, 523].forEach((f, i) => pOsc(f, getA().currentTime + i * 0.09, 'triangle', 0.22, 0.12)); }
-function sWind() {
-  try {
-    const a = getA(), t = a.currentTime, s = a.createBufferSource(); s.buffer = mkNoise(1);
-    const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500; const g = a.createGain();
-    s.connect(f); f.connect(g); g.connect(mGain);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + 1);
-    s.start(t); s.stop(t + 1);
-  } catch (e) {}
-}
+function sWind() { try { const a = getA(), t = a.currentTime, s = a.createBufferSource(); s.buffer = mkNoise(1); const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500; const g = a.createGain(); s.connect(f); f.connect(g); g.connect(mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + 1); s.start(t); s.stop(t + 1); } catch (e) {} }
 
 function soundTile(type) {
   if (!audioReady) return;
-  const map = {
-    hemp_farm: sWind, sunflower: () => { sWind(); setTimeout(sBird, 200); }, corn_field: sWind,
-    beehive: sBees, press: sMachine, mill: sMachine, market: sCoin, solar: sMachine,
-    house: () => pOsc(300, getA().currentTime, 'sine', 0.4, 0.15)
-  };
+  const map = { hemp_farm: sWind, sunflower: () => { sWind(); setTimeout(sBird, 200); }, corn_field: sWind, beehive: sBees, press: sMachine, mill: sMachine, market: sCoin, solar: sMachine, house: () => pOsc(300, getA().currentTime, 'sine', 0.4, 0.15) };
   (map[type] || sWind)();
 }
 
-// ═══════════════ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ═══════════════
-function resize() {
-  const w = Math.min(window.innerWidth, 430);
-  const hexH = Math.round(ROWS * 44 * 1.5 + 44 * 2);
-  game.width = w; game.height = hexH;
-  const pw = Math.min(w - 20, 390);
-  pano.width = pw; pano.height = 90;
-}
-resize();
-window.addEventListener('resize', resize);
+function resize() { const w = Math.min(window.innerWidth, 430); const hexH = Math.round(ROWS * 44 * 1.5 + 44 * 2); game.width = w; game.height = hexH; const pw = Math.min(w - 20, 390); pano.width = pw; pano.height = 90; }
+resize(); window.addEventListener('resize', resize);
 
-function hexCenter(col, row) {
-  const offX = (game.width - (COLS * HEX_W + HEX_W * 0.5)) / 2;
-  const offY = HEX_R;
-  const x = offX + col * HEX_W + (row % 2 === 1 ? HEX_W / 2 : 0) + HEX_W / 2;
-  const y = offY + row * HEX_R * 1.5 + HEX_R;
-  return { x, y };
-}
-function hexPath(ctx, cx, cy, r) {
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const a = Math.PI / 6 + i * Math.PI / 3;
-    const x = cx + r * Math.cos(a); const y = cy + r * Math.sin(a);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-}
-function pixelToHex(px, py) {
-  let best = -1, bestDist = HEX_R * 1.1;
-  for (let i = 0; i < COLS * ROWS; i++) {
-    const col = i % COLS, row = Math.floor(i / COLS);
-    const { x, y } = hexCenter(col, row);
-    const d = Math.sqrt((px - x) ** 2 + (py - y) ** 2);
-    if (d < bestDist) { bestDist = d; best = i; }
-  }
-  return best;
-}
+function hexCenter(col, row) { const offX = (game.width - (COLS * HEX_W + HEX_W * 0.5)) / 2; const offY = HEX_R; const x = offX + col * HEX_W + (row % 2 === 1 ? HEX_W / 2 : 0) + HEX_W / 2; const y = offY + row * HEX_R * 1.5 + HEX_R; return { x, y }; }
+function hexPath(ctx, cx, cy, r) { ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; const x = cx + r * Math.cos(a); const y = cy + r * Math.sin(a); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.closePath(); }
+function pixelToHex(px, py) { let best = -1, bestDist = HEX_R * 1.1; for (let i = 0; i < COLS * ROWS; i++) { const col = i % COLS, row = Math.floor(i / COLS); const { x, y } = hexCenter(col, row); const d = Math.sqrt((px - x) ** 2 + (py - y) ** 2); if (d < bestDist) { bestDist = d; best = i; } } return best; }
 function fmt(n) { if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'; if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'; return Math.floor(n) + ''; }
 function notify(m) { const el = document.getElementById('notif'); el.textContent = m; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2500); }
 function gt() { return (Date.now() % DAY) / DAY; }
 function nf() { const t = gt(); if (t < 0.15 || t > 0.85) return 1; if (t < 0.25) return 1 - (t - 0.15) / 0.1; if (t > 0.75) return (t - 0.75) / 0.1; return 0; }
 
-// Telegram SDK
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.disableVerticalSwipes?.(); }
 
-// ═══════════════ ИГРОВЫЕ ДАННЫЕ ═══════════════
-// ═══════════════ БАЗА ЗДАНИЙ (С ПЕРЕВОДОМ) ═══════════════
 const B = {
-  hemp_farm: {i:'🌿', cost:{terra:10}, prod:{seeds:3}, cons:{}, cy:'+3🌱', ul:0,
-    n:{ua:'Конопляна ферма', ru:'Конопляная ферма', en:'Hemp Farm'},
-    desc:{ua:'Технічна конопля.', ru:'Техническая конопля.', en:'Industrial hemp.'},
-    ch:{ua:'→ Насіння → Волокно/Олія', ru:'→ Семена → Волокно/Масло', en:'→ Seeds → Fiber/Oil'}},
-  sunflower: {i:'🌻', cost:{terra:20}, prod:{oil:1,food:2}, cons:{}, cy:'+1🫗+2🍞', ul:0,
-    n:{ua:'Соняшникове поле', ru:'Подсолнечное поле', en:'Sunflower Field'},
-    desc:{ua:'Олія та їжа.', ru:'Масло и еда.', en:'Oil and food.'},
-    ch:{ua:'→ Олія · Їжа', ru:'→ Масло · Еда', en:'→ Oil · Food'}},
-  corn_field: {i:'🌽', cost:{terra:18}, prod:{food:4}, cons:{}, cy:'+4🍞', ul:0,
-    n:{ua:'Кукурудзяне поле', ru:'Кукурузное поле', en:'Corn Field'},
-    desc:{ua:'Їжа для населення.', ru:'Еда для населения.', en:'Food for population.'},
-    ch:{ua:'→ Їжа → Населення', ru:'→ Еда → Население', en:'→ Food → Population'}},
-  poppy: {i:'🌺', cost:{terra:15}, prod:{medicine_base:1}, cons:{}, cy:'+1💊', ul:0,
-    n:{ua:'Макове поле', ru:'Маковое поле', en:'Poppy Field'},
-    desc:{ua:'Фармацевтичний мак.', ru:'Фармацевтический мак.', en:'Pharmaceutical poppy.'},
-    ch:{ua:'→ Ліки', ru:'→ Лекарства', en:'→ Medicine'}},
-  beehive: {i:'🐝', cost:{terra:25}, prod:{terra:4,food:1}, cons:{}, cy:'+4💰+1🍞', ul:0,
-    n:{ua:'Пасіка', ru:'Пасека', en:'Beehive'},
-    desc:{ua:'Мед та запилення.', ru:'Мед и опыление.', en:'Honey and pollination.'},
-    ch:{ua:'→ Терра · Їжа', ru:'→ Терра · Еда', en:'→ Terra · Food'}},
-  greenhouse: {i:'🪴', cost:{terra:45,seeds:5}, prod:{food:3,seeds:2}, cons:{energy:1}, cy:'+3🍞+2🌱', ul:1,
-    n:{ua:'Теплиця', ru:'Теплица', en:'Greenhouse'},
-    desc:{ua:'Цілорічне вирощування.', ru:'Круглогодичное выращивание.', en:'Year-round growing.'},
-    ch:{ua:'Енергія → Їжа+Насіння', ru:'Энергия → Еда+Семена', en:'Energy → Food+Seeds'}},
-  press: {i:'⚙️', cost:{terra:35,seeds:5}, prod:{fiber:2,oil:1}, cons:{seeds:3}, cy:'+2🧵+1🫗', ul:1,
-    n:{ua:'Прес-завод', ru:'Пресс-завод', en:'Press Plant'},
-    desc:{ua:'Насіння → волокно.', ru:'Семена → волокно.', en:'Seeds → fiber.'},
-    ch:{ua:'Насіння → Волокно+Олія', ru:'Семена → Волокно+Масло', en:'Seeds → Fiber+Oil'}},
-  mill: {i:'⚗️', cost:{terra:40,seeds:5}, prod:{food:3}, cons:{seeds:2}, cy:'+3🍞', ul:1,
-    n:{ua:'Вітряний млин', ru:'Ветряная мельница', en:'Windmill'},
-    desc:{ua:'Борошно та протеїн.', ru:'Мука и протеин.', en:'Flour and protein.'},
-    ch:{ua:'Насіння → Їжа', ru:'Семена → Еда', en:'Seeds → Food'}},
-  rope: {i:'🧵', cost:{terra:50,fiber:3}, prod:{terra:6}, cons:{fiber:1}, cy:'+6💰', ul:1,
-    n:{ua:'Канатний цех', ru:'Канатный цех', en:'Rope Workshop'},
-    desc:{ua:'Морські канати.', ru:'Морские канаты.', en:'Marine ropes.'},
-    ch:{ua:'Волокно → Терра', ru:'Волокно → Терра', en:'Fiber → Terra'}},
-  solar: {i:'☀️', cost:{terra:70}, prod:{energy:2}, cons:{}, cy:'+2⚡', ul:1,
-    n:{ua:'Сонячна панель', ru:'Солнечная панель', en:'Solar Panel'},
-    desc:{ua:'Зелена енергія.', ru:'Зеленая энергия.', en:'Green energy.'},
-    ch:{ua:'→ Енергія', ru:'→ Энергия', en:'→ Energy'}},
-  house: {i:'🏠', cost:{terra:30,food:3}, prod:{population:1}, cons:{food:1}, cy:'+1👥', ul:1,
-    n:{ua:'Оселя', ru:'Жилище', en:'House'},
-    desc:{ua:'Жителі — дохід.', ru:'Жители — доход.', en:'Citizens — income.'},
-    ch:{ua:'Їжа → Населення', ru:'Еда → Население', en:'Food → Population'}},
-  oil_press: {i:'🫗', cost:{terra:60,seeds:10}, prod:{oil:2}, cons:{seeds:4}, cy:'+2🫗', ul:2,
-    n:{ua:'Олієпресовий цех', ru:'Маслопрессовый цех', en:'Oil Press'},
-    desc:{ua:'Холодне пресування.', ru:'Холодный отжим.', en:'Cold pressing.'},
-    ch:{ua:'Насіння → Олія', ru:'Семена → Масло', en:'Seeds → Oil'}},
-  paint: {i:'🎨', cost:{terra:80,oil:2}, prod:{terra:7}, cons:{oil:1}, cy:'+7💰', ul:2,
-    n:{ua:'Фарбовий завод', ru:'Красочный завод', en:'Paint Factory'},
-    desc:{ua:'Натуральні фарби.', ru:'Натуральные краски.', en:'Natural paints.'},
-    ch:{ua:'Олія → Терра', ru:'Масло → Терра', en:'Oil → Terra'}},
-  market: {i:'🏪', cost:{terra:100}, prod:{terra:5}, cons:{food:1}, cy:'+5💰', ul:2,
-    n:{ua:'Ринок', ru:'Рынок', en:'Market'},
-    desc:{ua:'Торгівля.', ru:'Торговля.', en:'Trade.'},
-    ch:{ua:'→ Терра', ru:'→ Терра', en:'→ Terra'}},
-  pharma: {i:'💊', cost:{terra:120,oil:3}, prod:{terra:12}, cons:{oil:1,medicine_base:1}, cy:'+12💰', ul:3,
-    n:{ua:'Фармацевтика', ru:'Фармацевтика', en:'Pharma'},
-    desc:{ua:'CBD та ліки.', ru:'CBD и лекарства.', en:'CBD and meds.'},
-    ch:{ua:'Олія+Мак → Терра', ru:'Масло+Мак → Терра', en:'Oil+Poppy → Terra'}},
-  textile: {i:'👕', cost:{terra:150,fiber:10}, prod:{terra:15}, cons:{fiber:2}, cy:'+15💰', ul:4,
-    n:{ua:'Текстильний цех', ru:'Текстильный цех', en:'Textile Mill'},
-    desc:{ua:'Конопляна тканина.', ru:'Конопляная ткань.', en:'Hemp fabric.'},
-    ch:{ua:'Волокно → Терра', ru:'Волокно → Терра', en:'Fiber → Terra'}},
-  bioplastic: {i:'🛢️', cost:{terra:180,fiber:8,oil:5}, prod:{terra:18}, cons:{fiber:2,oil:1}, cy:'+18💰', ul:4,
-    n:{ua:'Біо-пластик', ru:'Био-пластик', en:'Bioplastic'},
-    desc:{ua:'Біопластик.', ru:'Биопластик.', en:'Bioplastic.'},
-    ch:{ua:'Волокно+Олія → Терра', ru:'Волокно+Масло → Терра', en:'Fiber+Oil → Terra'}},
-  lab: {i:'🔬', cost:{terra:200}, prod:{}, cons:{energy:1}, cy:'🔓', ul:3,
-    n:{ua:'Науковий центр', ru:'Научный центр', en:'Research Lab'},
-    desc:{ua:'Технології.', ru:'Технологии.', en:'Technologies.'},
-    ch:{ua:'Енергія → Апгрейди', ru:'Энергия → Апгрейды', en:'Energy → Upgrades'}},
-  seed_bank: {i:'🫙', cost:{terra:250}, prod:{rare_seed:0.2}, cons:{seeds:5}, cy:'🌟NFT', ul:5,
-    n:{ua:'Банк насіння', ru:'Банк семян', en:'Seed Bank'},
-    desc:{ua:'Рідкісне насіння!', ru:'Редкие семена!', en:'Rare seeds!'},
-    ch:{ua:'→ NFT на TON', ru:'→ NFT на TON', en:'→ NFT on TON'}},
+  hemp_farm: {i:'🌿', cost:{terra:10}, prod:{seeds:3}, cons:{}, cy:'+3🌱', ul:0, n:{ua:'Конопляна ферма', ru:'Конопляная ферма', en:'Hemp Farm'}, desc:{ua:'Технічна конопля.', ru:'Техническая конопля.', en:'Industrial hemp.'}, ch:{ua:'→ Насіння → Волокно/Олія', ru:'→ Семена → Волокно/Масло', en:'→ Seeds → Fiber/Oil'}},
+  sunflower: {i:'🌻', cost:{terra:20}, prod:{oil:1,food:2}, cons:{}, cy:'+1🫗+2🍞', ul:0, n:{ua:'Соняшникове поле', ru:'Подсолнечное поле', en:'Sunflower Field'}, desc:{ua:'Олія та їжа.', ru:'Масло и еда.', en:'Oil and food.'}, ch:{ua:'→ Олія · Їжа', ru:'→ Масло · Еда', en:'→ Oil · Food'}},
+  corn_field: {i:'🌽', cost:{terra:18}, prod:{food:4}, cons:{}, cy:'+4🍞', ul:0, n:{ua:'Кукурудзяне поле', ru:'Кукурузное поле', en:'Corn Field'}, desc:{ua:'Їжа для населення.', ru:'Еда для населения.', en:'Food for population.'}, ch:{ua:'→ Їжа → Населення', ru:'→ Еда → Население', en:'→ Food → Population'}},
+  poppy: {i:'🌺', cost:{terra:15}, prod:{medicine_base:1}, cons:{}, cy:'+1💊', ul:0, n:{ua:'Макове поле', ru:'Маковое поле', en:'Poppy Field'}, desc:{ua:'Фармацевтичний мак.', ru:'Фармацевтический мак.', en:'Pharmaceutical poppy.'}, ch:{ua:'→ Ліки', ru:'→ Лекарства', en:'→ Medicine'}},
+  beehive: {i:'🐝', cost:{terra:25}, prod:{terra:4,food:1}, cons:{}, cy:'+4💰+1🍞', ul:0, n:{ua:'Пасіка', ru:'Пасека', en:'Beehive'}, desc:{ua:'Мед та запилення.', ru:'Мед и опыление.', en:'Honey and pollination.'}, ch:{ua:'→ Терра · Їжа', ru:'→ Терра · Еда', en:'→ Terra · Food'}},
+  greenhouse: {i:'🪴', cost:{terra:45,seeds:5}, prod:{food:3,seeds:2}, cons:{energy:1}, cy:'+3🍞+2🌱', ul:1, n:{ua:'Теплиця', ru:'Теплица', en:'Greenhouse'}, desc:{ua:'Цілорічне вирощування.', ru:'Круглогодичное выращивание.', en:'Year-round growing.'}, ch:{ua:'Енергія → Їжа+Насіння', ru:'Энергия → Еда+Семена', en:'Energy → Food+Seeds'}},
+  press: {i:'⚙️', cost:{terra:35,seeds:5}, prod:{fiber:2,oil:1}, cons:{seeds:3}, cy:'+2🧵+1🫗', ul:1, n:{ua:'Прес-завод', ru:'Пресс-завод', en:'Press Plant'}, desc:{ua:'Насіння → волокно.', ru:'Семена → волокно.', en:'Seeds → fiber.'}, ch:{ua:'Насіння → Волокно+Олія', ru:'Семена → Волокно+Масло', en:'Seeds → Fiber+Oil'}},
+  mill: {i:'⚗️', cost:{terra:40,seeds:5}, prod:{food:3}, cons:{seeds:2}, cy:'+3🍞', ul:1, n:{ua:'Вітряний млин', ru:'Ветряная мельница', en:'Windmill'}, desc:{ua:'Борошно та протеїн.', ru:'Мука и протеин.', en:'Flour and protein.'}, ch:{ua:'Насіння → Їжа', ru:'Семена → Еда', en:'Seeds → Food'}},
+  rope: {i:'🧵', cost:{terra:50,fiber:3}, prod:{terra:6}, cons:{fiber:1}, cy:'+6💰', ul:1, n:{ua:'Канатний цех', ru:'Канатный цех', en:'Rope Workshop'}, desc:{ua:'Морські канати.', ru:'Морские канаты.', en:'Marine ropes.'}, ch:{ua:'Волокно → Терра', ru:'Волокно → Терра', en:'Fiber → Terra'}},
+  solar: {i:'☀️', cost:{terra:70}, prod:{energy:2}, cons:{}, cy:'+2⚡', ul:1, n:{ua:'Сонячна панель', ru:'Солнечная панель', en:'Solar Panel'}, desc:{ua:'Зелена енергія.', ru:'Зеленая энергия.', en:'Green energy.'}, ch:{ua:'→ Енергія', ru:'→ Энергия', en:'→ Energy'}},
+  house: {i:'🏠', cost:{terra:30,food:3}, prod:{population:1}, cons:{food:1}, cy:'+1👥', ul:1, n:{ua:'Оселя', ru:'Жилище', en:'House'}, desc:{ua:'Жителі — дохід.', ru:'Жители — доход.', en:'Citizens — income.'}, ch:{ua:'Їжа → Населення', ru:'Еда → Население', en:'Food → Population'}},
+  oil_press: {i:'🫗', cost:{terra:60,seeds:10}, prod:{oil:2}, cons:{seeds:4}, cy:'+2🫗', ul:2, n:{ua:'Олієпресовий цех', ru:'Маслопрессовый цех', en:'Oil Press'}, desc:{ua:'Холодне пресування.', ru:'Холодный отжим.', en:'Cold pressing.'}, ch:{ua:'Насіння → Олія', ru:'Семена → Масло', en:'Seeds → Oil'}},
+  paint: {i:'🎨', cost:{terra:80,oil:2}, prod:{terra:7}, cons:{oil:1}, cy:'+7💰', ul:2, n:{ua:'Фарбовий завод', ru:'Красочный завод', en:'Paint Factory'}, desc:{ua:'Натуральні фарби.', ru:'Натуральные краски.', en:'Natural paints.'}, ch:{ua:'Олія → Терра', ru:'Масло → Терра', en:'Oil → Terra'}},
+  market: {i:'🏪', cost:{terra:100}, prod:{terra:5}, cons:{food:1}, cy:'+5💰', ul:2, n:{ua:'Ринок', ru:'Рынок', en:'Market'}, desc:{ua:'Торгівля.', ru:'Торговля.', en:'Trade.'}, ch:{ua:'→ Терра', ru:'→ Терра', en:'→ Terra'}},
+  pharma: {i:'💊', cost:{terra:120,oil:3}, prod:{terra:12}, cons:{oil:1,medicine_base:1}, cy:'+12💰', ul:3, n:{ua:'Фармацевтика', ru:'Фармацевтика', en:'Pharma'}, desc:{ua:'CBD та ліки.', ru:'CBD и лекарства.', en:'CBD and meds.'}, ch:{ua:'Олія+Мак → Терра', ru:'Масло+Мак → Терра', en:'Oil+Poppy → Terra'}},
+  textile: {i:'👕', cost:{terra:150,fiber:10}, prod:{terra:15}, cons:{fiber:2}, cy:'+15💰', ul:4, n:{ua:'Текстильний цех', ru:'Текстильный цех', en:'Textile Mill'}, desc:{ua:'Конопляна тканина.', ru:'Конопляная ткань.', en:'Hemp fabric.'}, ch:{ua:'Волокно → Терра', ru:'Волокно → Терра', en:'Fiber → Terra'}},
+  bioplastic: {i:'🛢️', cost:{terra:180,fiber:8,oil:5}, prod:{terra:18}, cons:{fiber:2,oil:1}, cy:'+18💰', ul:4, n:{ua:'Біо-пластик', ru:'Био-пластик', en:'Bioplastic'}, desc:{ua:'Біопластик.', ru:'Биопластик.', en:'Bioplastic.'}, ch:{ua:'Волокно+Олія → Терра', ru:'Волокно+Масло → Терра', en:'Fiber+Oil → Terra'}},
+  lab: {i:'🔬', cost:{terra:200}, prod:{}, cons:{energy:1}, cy:'🔓', ul:3, n:{ua:'Науковий центр', ru:'Научный центр', en:'Research Lab'}, desc:{ua:'Технології.', ru:'Технологии.', en:'Technologies.'}, ch:{ua:'Енергія → Апгрейди', ru:'Энергия → Апгрейды', en:'Energy → Upgrades'}},
+  seed_bank: {i:'🫙', cost:{terra:250}, prod:{rare_seed:0.2}, cons:{seeds:5}, cy:'🌟NFT', ul:5, n:{ua:'Банк насіння', ru:'Банк семян', en:'Seed Bank'}, desc:{ua:'Рідкісне насіння!', ru:'Редкие семена!', en:'Rare seeds!'}, ch:{ua:'→ NFT на TON', ru:'→ NFT на TON', en:'→ NFT on TON'}},
 };
 
 const RICONS = {terra:'💰', seeds:'🌱', fiber:'🧵', oil:'🫗', food:'🍞', population:'👥', energy:'⚡', medicine_base:'💊'};
 const RD = [{k:'terra',i:'💰'},{k:'seeds',i:'🌱'},{k:'fiber',i:'🧵'},{k:'oil',i:'🫗'},{k:'food',i:'🍞'},{k:'population',i:'👥'},{k:'energy',i:'⚡'}];
 const SEASONS = ['spring','summer','autumn','winter'];
 
-// ═══════════════ СОСТОЯНИЕ ИГРЫ ═══════════════
 let seasonIdx = 1, season = 'summer', weather = 'clear';
-let S = {
-  terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0,
-  totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0,
-  grid: Array(20).fill(null), sel: null, rareSeeds: []
-};
+let S = { terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0, totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0, lastSpin: 0, grid: Array(20).fill(null), sel: null, rareSeeds: [] };
 
 let frame = 0, beeAngle = 0;
 const clouds = [{x:60,sp:.22},{x:250,sp:.15},{x:140,sp:.1}];
@@ -479,109 +312,27 @@ function canAfford(c) { return Object.entries(c).every(([k,v]) => (S[k] || 0) >=
 function ulv() { return Math.floor(S.built / 2); }
 function fmtC(c) { return Object.entries(c).map(([k,v]) => `${RICONS[k]||k}${v}`).join(' '); }
 
-// ═══════════════ ГРАФИКА: ОБЪЕКТЫ ═══════════════
 function gnd(ctx,x,y,w,h,c1,c2) { const g=ctx.createLinearGradient(x,y,x,y+h); g.addColorStop(0,c1||'#3a6a18'); g.addColorStop(1,c2||'#2a5010'); ctx.fillStyle=g; ctx.fillRect(x,y,w,h); }
 const SG = {spring:'#60e030', summer:'#40b020', autumn:'#b08010', winter:'#607060'};
 const SGnd = {spring:'#3a6a18', summer:'#2a5010', autumn:'#6a4a10', winter:'#506070'};
 const SGnd2 = {spring:'#5a9030', summer:'#4a7a20', autumn:'#8a6020', winter:'#708090'};
 function sg(){ return SG[season]; } function sgnd(){ return SGnd[season]; } function sgnd2(){ return SGnd2[season]; }
 
-function drawHempLeaf(ctx,cx,cy,sz,angle,col) {
-  ctx.save(); ctx.translate(cx,cy); ctx.rotate(angle); ctx.fillStyle=col;
-  for(let f=0;f<5;f++){ const fa=(f-2)*.42,fl=sz*(f===2?1:.68); ctx.save(); ctx.rotate(fa); ctx.beginPath(); ctx.moveTo(0,0); ctx.bezierCurveTo(-sz*.11,-fl*.35,-sz*.09,-fl*.82,0,-fl); ctx.bezierCurveTo(sz*.09,-fl*.82,sz*.11,-fl*.35,0,0); ctx.fill(); ctx.restore(); }
-  ctx.restore();
-}
-function drawHempPlant(ctx,cx,by,h,f) {
-  const sw=Math.sin(f*.025+cx)*2.5; ctx.strokeStyle='#2a7a18'; ctx.lineWidth=2.5; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(cx,by); ctx.lineTo(cx+sw,by-h); ctx.stroke();
-  [[.35,12],[.55,10],[.72,8]].forEach(([fr,sz])=>{ drawHempLeaf(ctx,cx+sw*fr-sz*.65,by-h*fr,sz,-.42,sg()); drawHempLeaf(ctx,cx+sw*fr+sz*.65,by-h*fr,sz,.42,sg()); });
-}
-function drawSunflower(ctx,cx,by,h,f,sunX) {
-  const sw=Math.sin(f*.02+cx)*2; ctx.strokeStyle='#2a7a18'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(cx,by); ctx.lineTo(cx+sw,by-h); ctx.stroke();
-  ctx.fillStyle=sg(); ctx.beginPath(); ctx.ellipse(cx-11+sw,by-h*.5,13,5,-.4,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(cx+11+sw,by-h*.55,13,5,.4,0,Math.PI*2); ctx.fill();
-  const px=cx+sw,py=by-h,pr=9; const ta=Math.atan2(py-50,px-(sunX||200));
-  ctx.save(); ctx.translate(px,py); ctx.rotate(ta);
-  for(let p=0;p<12;p++){ const a=(p/12)*Math.PI*2; ctx.fillStyle=p%2===0?'#f5c020':'#e8a808'; ctx.beginPath(); ctx.ellipse(Math.cos(a)*pr*1.6,Math.sin(a)*pr*1.6,pr*.55,pr*.32,a,0,Math.PI*2); ctx.fill(); }
-  ctx.fillStyle='#3a1800'; ctx.beginPath(); ctx.arc(0,0,pr,0,Math.PI*2); ctx.fill(); ctx.restore();
-}
-function drawCorn(ctx,cx,by,h,f) {
-  const sw=Math.sin(f*.022+cx)*2; ctx.strokeStyle='#2a8010'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(cx,by); ctx.lineTo(cx+sw,by-h); ctx.stroke();
-  ctx.fillStyle=sg(); [[.3,-1],[.5,1],[.7,-1]].forEach(([fr,side])=>{ ctx.beginPath(); ctx.moveTo(cx+sw*fr,by-h*fr); ctx.quadraticCurveTo(cx+side*22+sw*fr,by-h*fr-8,cx+side*15+sw*fr,by-h*fr-22); ctx.quadraticCurveTo(cx+side*5+sw*fr,by-h*fr-9,cx+sw*fr,by-h*fr); ctx.fill(); });
-  if(season!=='winter'){ const ex=cx+sw,ey=by-h*.58; ctx.fillStyle='#f0d040'; ctx.beginPath(); ctx.ellipse(ex+9,ey,5,13,.45,0,Math.PI*2); ctx.fill(); }
-}
-function drawPoppy(ctx,cx,by,h,f,i) {
-  const sw=Math.sin(f*.028+cx+i)*3; ctx.strokeStyle='#1a7018'; ctx.lineWidth=1.8; ctx.beginPath(); ctx.moveTo(cx,by); ctx.quadraticCurveTo(cx+sw*.4,by-h*.5,cx+sw,by-h); ctx.stroke();
-  const px=cx+sw,py=by-h;
-  ['#e82850','#c01030','#e04070','#f03060'].forEach((col,p)=>{ const a=(p/4)*Math.PI*2+f*.005; ctx.fillStyle=col; ctx.beginPath(); ctx.ellipse(px+Math.cos(a)*7,py+Math.sin(a)*7,8,11,a,0,Math.PI*2); ctx.fill(); });
-  ctx.fillStyle='#150612'; ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2); ctx.fill();
-}
-function drawBee(ctx,bx,by,angle,f) {
-  ctx.save(); ctx.translate(bx,by); ctx.rotate(angle+Math.PI/2);
-  ctx.fillStyle='#f0c020'; ctx.beginPath(); ctx.ellipse(0,0,3,5,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#1a1000'; ctx.fillRect(-3,-2,6,1.5); ctx.fillRect(-3,1,6,1.5);
-  const wf=Math.sin(f*.5)*1.5; ctx.fillStyle='rgba(200,230,255,.75)';
-  ctx.beginPath(); ctx.ellipse(-4,-3+wf,4.5,2.5,-.5,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(4,-3+wf,4.5,2.5,.5,0,Math.PI*2); ctx.fill(); ctx.restore();
-}
-function drawHouse(ctx,x,y,tw,f) {
-  gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx=x+tw*.5,gy=y+tw*.91,bw=tw*.64,bh=tw*.43;
-  ctx.fillStyle='#f0e8d0'; ctx.fillRect(cx-bw/2,gy-bh,bw,bh);
-  ctx.fillStyle=season==='winter'?'#c0d0e0':'#c8a038'; ctx.beginPath(); ctx.moveTo(cx-bw/2-5,gy-bh+2); ctx.lineTo(cx,gy-bh-tw*.33); ctx.lineTo(cx+bw/2+5,gy-bh+2); ctx.closePath(); ctx.fill();
-  const night=nf(); const wc=night>.3?`rgba(255,200,80,${night*.9})`:' #87d4ff';
-  [[cx-bw*.27,gy-bh+bh*.28],[cx+bw*.27,gy-bh+bh*.28]].forEach(([wx,wy])=>{ if(night>.3){ ctx.fillStyle=`rgba(255,180,50,${night*.3})`; ctx.beginPath(); ctx.ellipse(wx,wy,18,14,0,0,Math.PI*2); ctx.fill(); } ctx.fillStyle=wc.trim(); ctx.fillRect(wx-7,wy-7,14,14); });
-  ctx.fillStyle='#5a2808'; ctx.beginPath(); ctx.rect(cx-7,gy-22,14,22); ctx.arc(cx,gy-22,7,Math.PI,0); ctx.fill();
-  const st=(f*.4)%22; ctx.globalAlpha=Math.max(0,.55-st/22); ctx.fillStyle='rgba(210,190,170,.8)'; ctx.beginPath(); ctx.arc(cx+bw*.235,gy-bh-tw*.16-st,2+st*.12,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-}
-function drawFactory(ctx,x,y,tw,f,col,smk) {
-  gnd(ctx,x,y,tw,tw,'#3a2a10','#604828'); const cx=x+tw*.5,gy=y+tw*.91,bw=tw*.62,bh=tw*.48;
-  ctx.fillStyle=col||'#b09068'; ctx.fillRect(cx-bw/2,gy-bh,bw,bh);
-  ctx.fillStyle='#85c0ff'; [[.28,.36],[.72,.36],[.5,.62]].forEach(([rx,ry])=>ctx.fillRect(cx-bw/2+bw*rx-5,gy-bh+bh*ry-4,10,10));
-  ctx.fillStyle='#3a2010'; ctx.fillRect(cx-8,gy-20,16,20);
-  [[.25,.18],[.75,.22]].forEach(([rx,rh])=>{ ctx.fillStyle='#484030'; ctx.fillRect(cx-bw/2+bw*rx-4,gy-bh-tw*rh,8,tw*rh+4); if(smk){ const st=(f*.3+rx*10)%20; ctx.globalAlpha=Math.max(0,.45-st/20); ctx.fillStyle='rgba(180,160,140,.8)'; ctx.beginPath(); ctx.arc(cx-bw/2+bw*rx,gy-bh-tw*rh-st,2.5+st*.1,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; } });
-}
-function drawMill(ctx,x,y,tw,f) {
-  gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx=x+tw*.5,gy=y+tw*.91;
-  ctx.fillStyle=season==='winter'?'#d8e4f0':'#e8e0c0'; ctx.beginPath(); ctx.moveTo(cx-tw*.19,gy-tw*.58); ctx.lineTo(cx-tw*.12,gy); ctx.lineTo(cx+tw*.12,gy); ctx.lineTo(cx+tw*.19,gy-tw*.58); ctx.closePath(); ctx.fill();
-  ctx.fillStyle='#7a5830'; ctx.beginPath(); ctx.moveTo(cx-tw*.21,gy-tw*.58); ctx.lineTo(cx,gy-tw*.8); ctx.lineTo(cx+tw*.21,gy-tw*.58); ctx.closePath(); ctx.fill();
-  ctx.save(); ctx.translate(cx,gy-tw*.62); ctx.rotate(f*.04); ctx.fillStyle='#9a7038';
-  [[0],[Math.PI/2],[Math.PI],[Math.PI*1.5]].forEach(([a])=>{ ctx.save(); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(-2.5,0); ctx.lineTo(-4,-tw*.28); ctx.lineTo(4,-tw*.28); ctx.lineTo(2.5,0); ctx.closePath(); ctx.fill(); ctx.restore(); });
-  ctx.fillStyle='#503818'; ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fill(); ctx.restore();
-}
-function drawSolar(ctx,x,y,tw,f) {
-  gnd(ctx,x,y,tw,tw,'#181808','#2a2808'); const cx=x+tw*.5,cy=y+tw*.5;
-  ctx.fillStyle='#1a3870'; ctx.fillRect(cx-tw*.38,cy-tw*.3,tw*.76,tw*.5); ctx.fillStyle='#152e60';
-  for(let r=0;r<3;r++)for(let c=0;c<4;c++)ctx.fillRect(cx-tw*.36+c*tw*.18,cy-tw*.28+r*tw*.15,tw*.16,tw*.13);
-  ctx.fillStyle='#585858'; ctx.fillRect(cx-2,cy+tw*.2,4,tw*.26);
-}
-function drawBeehive(ctx,x,y,tw,f) {
-  gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const hx=x+tw*.5,hy=y+tw*.62;
-  ctx.fillStyle='#d0a038'; ctx.beginPath(); ctx.ellipse(hx,hy,tw*.26,tw*.32,0,Math.PI,0,true); ctx.fill();
-  ctx.fillStyle='#a87828'; ctx.beginPath(); ctx.ellipse(hx,hy,tw*.28,tw*.06,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#2a1500'; ctx.beginPath(); ctx.ellipse(hx,hy+2,tw*.055,tw*.038,0,0,Math.PI*2); ctx.fill();
-  [0,2.1,4.2].forEach(off=>drawBee(ctx,hx+Math.cos(beeAngle+off)*tw*.38,hy-tw*.1+Math.sin(beeAngle+off)*tw*.16,beeAngle+off,f));
-}
-function drawGreenhouse(ctx,x,y,tw,f) {
-  gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx=x+tw*.5,gy=y+tw*.9,w=tw*.72,h=tw*.48;
-  ctx.fillStyle=`rgba(160,220,200,${.22+Math.sin(f*.04)*.05})`; ctx.fillRect(cx-w/2,gy-h,w,h);
-  ctx.strokeStyle='rgba(100,160,120,.7)'; ctx.lineWidth=1.5; ctx.strokeRect(cx-w/2,gy-h,w,h);
-}
-function drawEmpty(ctx,x,y,tw,f) {
-  gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx2=x+tw/2,cy2=y+tw/2;
-  ctx.strokeStyle=season==='winter'?'#708090':'#4a9a18'; ctx.lineWidth=1.8;
-  [[.18,.62],[.45,.38],[.78,.68]].forEach(([rx,ry])=>{ const gx=x+tw*rx,gy=y+tw*ry; ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx-1,gy-7); ctx.moveTo(gx,gy); ctx.lineTo(gx+2,gy-6); ctx.stroke(); });
-  const pulse=Math.sin(f*.04)*.15+.25; ctx.strokeStyle=`rgba(120,200,80,${pulse})`; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(cx2-8,cy2); ctx.lineTo(cx2+8,cy2); ctx.moveTo(cx2,cy2-8); ctx.lineTo(cx2,cy2+8); ctx.stroke();
-}
-function drawDrone(ctx,d) {
-  const dx=d.tx-d.x,dy=d.ty-d.y,dist=Math.sqrt(dx*dx+dy*dy); if(dist<8){ d.tx=Math.random()*game.width; d.ty=20+Math.random()*50; }
-  d.x+=dx/dist*d.sp; d.y+=dy/dist*d.sp; d.led+=.12; const bob=Math.sin(frame*.09)*3,angle=Math.atan2(dy,dx);
-  ctx.save(); ctx.translate(d.x,d.y+bob); ctx.rotate(angle-Math.PI/2);
-  ctx.fillStyle='rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(2,4,14,5,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#404040'; ctx.beginPath(); ctx.ellipse(0,0,10,7,0,0,Math.PI*2); ctx.fill();
-  [[-.7,-.65],[.7,-.65],[-.7,.65],[.7,.65]].forEach(([ax,ay])=>{ ctx.fillStyle='#444'; ctx.beginPath(); ctx.arc(ax*18,ay*10,4,0,Math.PI*2); ctx.fill(); });
-  ctx.restore();
-}
+function drawHempLeaf(ctx,cx,cy,sz,angle,col) { ctx.save(); ctx.translate(cx,cy); ctx.rotate(angle); ctx.fillStyle=col; for(let f=0;f<5;f++){ const fa=(f-2)*.42,fl=sz*(f===2?1:.68); ctx.save(); ctx.rotate(fa); ctx.beginPath(); ctx.moveTo(0,0); ctx.bezierCurveTo(-sz*.11,-fl*.35,-sz*.09,-fl*.82,0,-fl); ctx.bezierCurveTo(sz*.09,-fl*.82,sz*.11,-fl*.35,0,0); ctx.fill(); ctx.restore(); } ctx.restore(); }
+function drawHempPlant(ctx,cx,by,h,f) { const sw=Math.sin(f*.025+cx)*2.5; ctx.strokeStyle='#2a7a18'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(cx,by); ctx.lineTo(cx+sw,by-h); ctx.stroke(); [[.35,12],[.55,10],[.72,8]].forEach(([fr,sz])=>{ drawHempLeaf(ctx,cx+sw*fr-sz*.65,by-h*fr,sz,-.42,sg()); drawHempLeaf(ctx,cx+sw*fr+sz*.65,by-h*fr,sz,.42,sg()); }); }
+function drawSunflower(ctx,cx,by,h,f,sunX) { const sw=Math.sin(f*.02+cx)*2; ctx.strokeStyle='#2a7a18'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(cx,by); ctx.lineTo(cx+sw,by-h); ctx.stroke(); ctx.fillStyle=sg(); ctx.beginPath(); ctx.ellipse(cx-11+sw,by-h*.5,13,5,-.4,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(cx+11+sw,by-h*.55,13,5,.4,0,Math.PI*2); ctx.fill(); const px=cx+sw,py=by-h,pr=9; const ta=Math.atan2(py-50,px-(sunX||200)); ctx.save(); ctx.translate(px,py); ctx.rotate(ta); for(let p=0;p<12;p++){ const a=(p/12)*Math.PI*2; ctx.fillStyle=p%2===0?'#f5c020':'#e8a808'; ctx.beginPath(); ctx.ellipse(Math.cos(a)*pr*1.6,Math.sin(a)*pr*1.6,pr*.55,pr*.32,a,0,Math.PI*2); ctx.fill(); } ctx.fillStyle='#3a1800'; ctx.beginPath(); ctx.arc(0,0,pr,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+function drawCorn(ctx,cx,by,h,f) { const sw=Math.sin(f*.022+cx)*2; ctx.strokeStyle='#2a8010'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(cx,by); ctx.lineTo(cx+sw,by-h); ctx.stroke(); ctx.fillStyle=sg(); [[.3,-1],[.5,1],[.7,-1]].forEach(([fr,side])=>{ ctx.beginPath(); ctx.moveTo(cx+sw*fr,by-h*fr); ctx.quadraticCurveTo(cx+side*22+sw*fr,by-h*fr-8,cx+side*15+sw*fr,by-h*fr-22); ctx.quadraticCurveTo(cx+side*5+sw*fr,by-h*fr-9,cx+sw*fr,by-h*fr); ctx.fill(); }); if(season!=='winter'){ const ex=cx+sw,ey=by-h*.58; ctx.fillStyle='#f0d040'; ctx.beginPath(); ctx.ellipse(ex+9,ey,5,13,.45,0,Math.PI*2); ctx.fill(); } }
+function drawPoppy(ctx,cx,by,h,f,i) { const sw=Math.sin(f*.028+cx+i)*3; ctx.strokeStyle='#1a7018'; ctx.lineWidth=1.8; ctx.beginPath(); ctx.moveTo(cx,by); ctx.quadraticCurveTo(cx+sw*.4,by-h*.5,cx+sw,by-h); ctx.stroke(); const px=cx+sw,py=by-h; ['#e82850','#c01030','#e04070','#f03060'].forEach((col,p)=>{ const a=(p/4)*Math.PI*2+f*.005; ctx.fillStyle=col; ctx.beginPath(); ctx.ellipse(px+Math.cos(a)*7,py+Math.sin(a)*7,8,11,a,0,Math.PI*2); ctx.fill(); }); ctx.fillStyle='#150612'; ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2); ctx.fill(); }
+function drawBee(ctx,bx,by,angle,f) { ctx.save(); ctx.translate(bx,by); ctx.rotate(angle+Math.PI/2); ctx.fillStyle='#f0c020'; ctx.beginPath(); ctx.ellipse(0,0,3,5,0,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#1a1000'; ctx.fillRect(-3,-2,6,1.5); ctx.fillRect(-3,1,6,1.5); const wf=Math.sin(f*.5)*1.5; ctx.fillStyle='rgba(200,230,255,.75)'; ctx.beginPath(); ctx.ellipse(-4,-3+wf,4.5,2.5,-.5,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(4,-3+wf,4.5,2.5,.5,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+function drawHouse(ctx,x,y,tw,f) { gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx=x+tw*.5,gy=y+tw*.91,bw=tw*.64,bh=tw*.43; ctx.fillStyle='#f0e8d0'; ctx.fillRect(cx-bw/2,gy-bh,bw,bh); ctx.fillStyle=season==='winter'?'#c0d0e0':'#c8a038'; ctx.beginPath(); ctx.moveTo(cx-bw/2-5,gy-bh+2); ctx.lineTo(cx,gy-bh-tw*.33); ctx.lineTo(cx+bw/2+5,gy-bh+2); ctx.closePath(); ctx.fill(); const night=nf(); const wc=night>.3?`rgba(255,200,80,${night*.9})`:' #87d4ff'; [[cx-bw*.27,gy-bh+bh*.28],[cx+bw*.27,gy-bh+bh*.28]].forEach(([wx,wy])=>{ if(night>.3){ ctx.fillStyle=`rgba(255,180,50,${night*.3})`; ctx.beginPath(); ctx.ellipse(wx,wy,18,14,0,0,Math.PI*2); ctx.fill(); } ctx.fillStyle=wc.trim(); ctx.fillRect(wx-7,wy-7,14,14); }); ctx.fillStyle='#5a2808'; ctx.beginPath(); ctx.rect(cx-7,gy-22,14,22); ctx.arc(cx,gy-22,7,Math.PI,0); ctx.fill(); const st=(f*.4)%22; ctx.globalAlpha=Math.max(0,.55-st/22); ctx.fillStyle='rgba(210,190,170,.8)'; ctx.beginPath(); ctx.arc(cx+bw*.235,gy-bh-tw*.16-st,2+st*.12,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; }
+function drawFactory(ctx,x,y,tw,f,col,smk) { gnd(ctx,x,y,tw,tw,'#3a2a10','#604828'); const cx=x+tw*.5,gy=y+tw*.91,bw=tw*.62,bh=tw*.48; ctx.fillStyle=col||'#b09068'; ctx.fillRect(cx-bw/2,gy-bh,bw,bh); ctx.fillStyle='#85c0ff'; [[.28,.36],[.72,.36],[.5,.62]].forEach(([rx,ry])=>ctx.fillRect(cx-bw/2+bw*rx-5,gy-bh+bh*ry-4,10,10)); ctx.fillStyle='#3a2010'; ctx.fillRect(cx-8,gy-20,16,20); [[.25,.18],[.75,.22]].forEach(([rx,rh])=>{ ctx.fillStyle='#484030'; ctx.fillRect(cx-bw/2+bw*rx-4,gy-bh-tw*rh,8,tw*rh+4); if(smk){ const st=(f*.3+rx*10)%20; ctx.globalAlpha=Math.max(0,.45-st/20); ctx.fillStyle='rgba(180,160,140,.8)'; ctx.beginPath(); ctx.arc(cx-bw/2+bw*rx,gy-bh-tw*rh-st,2.5+st*.1,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; } }); }
+function drawMill(ctx,x,y,tw,f) { gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx=x+tw*.5,gy=y+tw*.91; ctx.fillStyle=season==='winter'?'#d8e4f0':'#e8e0c0'; ctx.beginPath(); ctx.moveTo(cx-tw*.19,gy-tw*.58); ctx.lineTo(cx-tw*.12,gy); ctx.lineTo(cx+tw*.12,gy); ctx.lineTo(cx+tw*.19,gy-tw*.58); ctx.closePath(); ctx.fill(); ctx.fillStyle='#7a5830'; ctx.beginPath(); ctx.moveTo(cx-tw*.21,gy-tw*.58); ctx.lineTo(cx,gy-tw*.8); ctx.lineTo(cx+tw*.21,gy-tw*.58); ctx.closePath(); ctx.fill(); ctx.save(); ctx.translate(cx,gy-tw*.62); ctx.rotate(f*.04); ctx.fillStyle='#9a7038'; [[0],[Math.PI/2],[Math.PI],[Math.PI*1.5]].forEach(([a])=>{ ctx.save(); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(-2.5,0); ctx.lineTo(-4,-tw*.28); ctx.lineTo(4,-tw*.28); ctx.lineTo(2.5,0); ctx.closePath(); ctx.fill(); ctx.restore(); }); ctx.fillStyle='#503818'; ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+function drawSolar(ctx,x,y,tw,f) { gnd(ctx,x,y,tw,tw,'#181808','#2a2808'); const cx=x+tw*.5,cy=y+tw*.5; ctx.fillStyle='#1a3870'; ctx.fillRect(cx-tw*.38,cy-tw*.3,tw*.76,tw*.5); ctx.fillStyle='#152e60'; for(let r=0;r<3;r++)for(let c=0;c<4;c++)ctx.fillRect(cx-tw*.36+c*tw*.18,cy-tw*.28+r*tw*.15,tw*.16,tw*.13); ctx.fillStyle='#585858'; ctx.fillRect(cx-2,cy+tw*.2,4,tw*.26); }
+function drawBeehive(ctx,x,y,tw,f) { gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const hx=x+tw*.5,hy=y+tw*.62; ctx.fillStyle='#d0a038'; ctx.beginPath(); ctx.ellipse(hx,hy,tw*.26,tw*.32,0,Math.PI,0,true); ctx.fill(); ctx.fillStyle='#a87828'; ctx.beginPath(); ctx.ellipse(hx,hy,tw*.28,tw*.06,0,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#2a1500'; ctx.beginPath(); ctx.ellipse(hx,hy+2,tw*.055,tw*.038,0,0,Math.PI*2); ctx.fill(); [0,2.1,4.2].forEach(off=>drawBee(ctx,hx+Math.cos(beeAngle+off)*tw*.38,hy-tw*.1+Math.sin(beeAngle+off)*tw*.16,beeAngle+off,f)); }
+function drawGreenhouse(ctx,x,y,tw,f) { gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx=x+tw*.5,gy=y+tw*.9,w=tw*.72,h=tw*.48; ctx.fillStyle=`rgba(160,220,200,${.22+Math.sin(f*.04)*.05})`; ctx.fillRect(cx-w/2,gy-h,w,h); ctx.strokeStyle='rgba(100,160,120,.7)'; ctx.lineWidth=1.5; ctx.strokeRect(cx-w/2,gy-h,w,h); }
+function drawEmpty(ctx,x,y,tw,f) { gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx2=x+tw/2,cy2=y+tw/2; ctx.strokeStyle=season==='winter'?'#708090':'#4a9a18'; ctx.lineWidth=1.8; [[.18,.62],[.45,.38],[.78,.68]].forEach(([rx,ry])=>{ const gx=x+tw*rx,gy=y+tw*ry; ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx-1,gy-7); ctx.moveTo(gx,gy); ctx.lineTo(gx+2,gy-6); ctx.stroke(); }); const pulse=Math.sin(f*.04)*.15+.25; ctx.strokeStyle=`rgba(120,200,80,${pulse})`; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx2-8,cy2); ctx.lineTo(cx2+8,cy2); ctx.moveTo(cx2,cy2-8); ctx.lineTo(cx2,cy2+8); ctx.stroke(); }
+function drawDrone(ctx,d) { const dx=d.tx-d.x,dy=d.ty-d.y,dist=Math.sqrt(dx*dx+dy*dy); if(dist<8){ d.tx=Math.random()*game.width; d.ty=20+Math.random()*50; } d.x+=dx/dist*d.sp; d.y+=dy/dist*d.sp; d.led+=.12; const bob=Math.sin(frame*.09)*3,angle=Math.atan2(dy,dx); ctx.save(); ctx.translate(d.x,d.y+bob); ctx.rotate(angle-Math.PI/2); ctx.fillStyle='rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(2,4,14,5,0,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#404040'; ctx.beginPath(); ctx.ellipse(0,0,10,7,0,0,Math.PI*2); ctx.fill(); [[-.7,-.65],[.7,-.65],[-.7,.65],[.7,.65]].forEach(([ax,ay])=>{ ctx.fillStyle='#444'; ctx.beginPath(); ctx.arc(ax*18,ay*10,4,0,Math.PI*2); ctx.fill(); }); ctx.restore(); }
 
-// ═══════════════ ГЛАВНЫЙ РЕНДЕР ═══════════════
 function drawTile(idx,sunX) {
   const col=idx%COLS,row=Math.floor(idx/COLS); const {x:cx,y:cy}=hexCenter(col,row);
   const r=HEX_R-1; const TW2=r*2; const x=cx-r,y=cy-r;
@@ -602,7 +353,6 @@ function drawTile(idx,sunX) {
       else if(t==='mill') drawMill(gc,cx-r,cy-r,TW2,frame);
       else if(t==='solar') drawSolar(gc,cx-r,cy-r,TW2,frame);
       else drawFactory(gc,cx-r,cy-r,TW2,frame,'#906858',true);
-      
       gc.fillStyle='rgba(0,0,0,.55)'; gc.fillRect(cx-r+2,cy-r+2,20,13);
       gc.fillStyle='#f0b828'; gc.font='bold 10px Russo One'; gc.textAlign='left'; gc.textBaseline='top'; gc.fillText('Lv'+b.lv,cx-r+3,cy-r+2);
       gc.fillStyle='rgba(0,0,0,.52)'; gc.fillRect(cx-r,cy+r-14,r*2,14);
@@ -636,43 +386,21 @@ function drawEffects() {
   drones.forEach(d=>drawDrone(gc,d));
 }
 
-function loop() {
-  frame++; beeAngle+=.028;
-  try {
-    const sunX=drawPano();
-    const earthGrad=gc.createLinearGradient(0,0,0,game.height);
-    if(nf()>.5){earthGrad.addColorStop(0,'#0a1a05');earthGrad.addColorStop(1,'#050d02');} else if(season==='winter'){earthGrad.addColorStop(0,'#2a3a4a');earthGrad.addColorStop(1,'#1a2a3a');} else if(season==='autumn'){earthGrad.addColorStop(0,'#3a2a0a');earthGrad.addColorStop(1,'#2a1a05');} else {earthGrad.addColorStop(0,'#2a5a12');earthGrad.addColorStop(1,'#1a3a08');}
-    gc.fillStyle=earthGrad; gc.fillRect(0,0,game.width,game.height);
-    for(let i=0;i<20;i++) drawTile(i,sunX);
-    drawEffects();
-  } catch(e) { console.error("Loop error:", e); }
-  requestAnimationFrame(loop);
-}
+function loop() { frame++; beeAngle+=.028; try { const sunX=drawPano(); const earthGrad=gc.createLinearGradient(0,0,0,game.height); if(nf()>.5){earthGrad.addColorStop(0,'#0a1a05');earthGrad.addColorStop(1,'#050d02');} else if(season==='winter'){earthGrad.addColorStop(0,'#2a3a4a');earthGrad.addColorStop(1,'#1a2a3a');} else if(season==='autumn'){earthGrad.addColorStop(0,'#3a2a0a');earthGrad.addColorStop(1,'#2a1a05');} else {earthGrad.addColorStop(0,'#2a5a12');earthGrad.addColorStop(1,'#1a3a08');} gc.fillStyle=earthGrad; gc.fillRect(0,0,game.width,game.height); for(let i=0;i<20;i++) drawTile(i,sunX); drawEffects(); } catch(e) { console.error(e); } requestAnimationFrame(loop); }
 
-// ═══════════════ ВВОД И UI ═══════════════
 function getTile(cx2,cy2) { const rect=game.getBoundingClientRect(); const sx=game.width/rect.width,sy=game.height/rect.height; const px=(cx2-rect.left)*sx,py=(cy2-rect.top)*sy; return pixelToHex(px,py); }
 game.addEventListener('touchstart',e=>{ e.preventDefault(); unlockAudio(); if(panelOpen){closePanel();return;} const i=getTile(e.touches[0].clientX,e.touches[0].clientY); if(i>=0) tapTile(i); },{passive:false});
 game.addEventListener('click',e=>{ unlockAudio(); const i=getTile(e.clientX,e.clientY); if(i>=0) tapTile(i); });
 
-function tapTile(i) {
-  soundTile(S.grid[i] ? S.grid[i].t : null);
-  if(S.grid[i]) { sp('info'); renderInfo(i); } else { sp('build'); renderBuild(); }
-  S.sel=i;
-}
-
+function tapTile(i) { soundTile(S.grid[i] ? S.grid[i].t : null); if(S.grid[i]) { sp('info'); renderInfo(i); } else { sp('build'); renderBuild(); } S.sel=i; }
 function renderRes() { document.getElementById('rbar').innerHTML=RD.map(r=>`<div class="rc"><span class="ri">${r.i}</span><span class="rv">${fmt(S[r.k]||0)}</span></div>`).join(''); }
 
 function renderBuild() {
-  const lv=ulv();
-  document.getElementById('bgrid').innerHTML=Object.entries(B).map(([k,bd])=>{
+  const lv=ulv(); document.getElementById('bgrid').innerHTML=Object.entries(B).map(([k,bd])=>{
     const lk=bd.ul>lv, ok=!lk&&canAfford(bd.cost);
     const name = bd.n[currentLang] || bd.n.ua;
     const desc = bd.desc[currentLang] || bd.desc.ua;
-    return `<div class="bcard ${lk?'no':ok?'ok':''}" onclick="doBuild('${k}')">
-      <div class="bct"><span class="bci">${bd.i}</span><span class="bcn">${name}</span></div>
-      <div class="bcd">${desc}</div>
-      <div class="bcco">${fmtC(bd.cost)}${lk?` 🔒Lv${bd.ul}`:''}</div>
-    </div>`;
+    return `<div class="bcard ${lk?'no':ok?'ok':''}" onclick="doBuild('${k}')"><div class="bct"><span class="bci">${bd.i}</span><span class="bcn">${name}</span></div><div class="bcd">${desc}</div><div class="bcco">${fmtC(bd.cost)}${lk?` 🔒Lv${bd.ul}`:''}</div></div>`;
   }).join('');
 }
 
@@ -685,118 +413,73 @@ function doBuild(k) {
 
 function renderInfo(i) {
   const b=S.grid[i]; if(!b) return; const bd=B[b.t]; const uc=Math.floor(50*Math.pow(2,b.lv-1));
-  const name = bd.n[currentLang] || bd.n.ua;
-  const desc = bd.desc[currentLang] || bd.desc.ua;
-  document.getElementById('icontent').innerHTML=`<div class="ibox">
-    <div class="it">${bd.i} ${name} · Lv${b.lv}</div>
-    <div class="ir">⚙️ <strong>${bd.cy}</strong></div>
-    <div class="ir">${desc}</div>
-    <div class="ibtns">
-      <button class="ibtn ibtn-u" onclick="doUpg(${i})" ${b.lv>=3||S.terra<uc?'disabled':''}>⬆ Lv${b.lv+1} · 💰${uc}</button>
-      <button class="ibtn ibtn-d" onclick="doDel(${i})">🗑</button>
-    </div>
-  </div>`;
+  const name = bd.n[currentLang] || bd.n.ua; const desc = bd.desc[currentLang] || bd.desc.ua;
+  document.getElementById('icontent').innerHTML=`<div class="ibox"><div class="it">${bd.i} ${name} · Lv${b.lv}</div><div class="ir">⚙️ <strong>${bd.cy}</strong></div><div class="ir">${desc}</div><div class="ibtns"><button class="ibtn ibtn-u" onclick="doUpg(${i})" ${b.lv>=3||S.terra<uc?'disabled':''}>⬆ Lv${b.lv+1} · 💰${uc}</button><button class="ibtn ibtn-d" onclick="doDel(${i})">🗑</button></div></div>`;
 }
 
-function doUpg(i) {
-  const b=S.grid[i]; const uc=Math.floor(50*Math.pow(2,b.lv-1)); if(b.lv>=3){notify(L.maxLvl);return;} if(S.terra<uc){notify('⚠ 💰'+uc);return;}
-  S.terra-=uc; b.lv++; sBuild(); notify(L.upgraded+' Lv'+b.lv); renderRes(); renderInfo(i);
-}
-
-function doDel(i) {
-  const ref=Math.floor(B[S.grid[i].t].cost.terra*.5); S.terra+=ref; S.grid[i]=null; S.sel=null;
-  notify(L.demolished+'💰'+ref); renderRes(); sp('build'); renderBuild();
-}
+function doUpg(i) { const b=S.grid[i]; const uc=Math.floor(50*Math.pow(2,b.lv-1)); if(b.lv>=3){notify(L.maxLvl);return;} if(S.terra<uc){notify('⚠ 💰'+uc);return;} S.terra-=uc; b.lv++; sBuild(); notify(L.upgraded+' Lv'+b.lv); renderRes(); renderInfo(i); }
+function doDel(i) { const ref=Math.floor(B[S.grid[i].t].cost.terra*.5); S.terra+=ref; S.grid[i]=null; S.sel=null; notify(L.demolished+'💰'+ref); renderRes(); sp('build'); renderBuild(); }
 
 const PANELS=['build','info','chain','stats'];
-let panelOpen=false;
 function sp(n) {
   const bottom=document.querySelector('.bottom');
-  if(panelOpen && PANELS.indexOf(n)>=0) {
-    const activePanel=PANELS[Array.from(document.querySelectorAll('.btab')).findIndex(t=>t.classList.contains('active'))];
-    if(activePanel===n) { closePanel(); return; }
-  }
-  panelOpen=true; bottom.classList.add('open');
-  document.querySelectorAll('.btab').forEach((t,i)=>t.classList.toggle('active',PANELS[i]===n));
+  if(panelOpen && PANELS.indexOf(n)>=0) { const activePanel=PANELS[Array.from(document.querySelectorAll('.btab')).findIndex(t=>t.classList.contains('active'))]; if(activePanel===n) { closePanel(); return; } }
+  panelOpen=true; bottom.classList.add('open'); document.querySelectorAll('.btab').forEach((t,i)=>t.classList.toggle('active',PANELS[i]===n));
   PANELS.forEach(p=>document.getElementById('panel-'+p).style.display=p===n?'':' none');
   if(n==='build') renderBuild();
-  if(n==='stats') {
-    document.getElementById('sgrid').innerHTML=[
-      {l:L.stats.earned, v:fmt(S.totalTerra), g:true},
-      {l:L.stats.cycles, v:S.cycles},
-      {l:L.stats.built, v:S.built},
-      {l:L.stats.pop, v:S.population}
-    ].map(s=>`<div class="sbox"><div class="sbl">${s.l}</div><div class="sbv${s.g?' g':''}">${s.v}</div></div>`).join('');
-  }
+  if(n==='stats') { document.getElementById('sgrid').innerHTML=[{l:L.stats.earned, v:fmt(S.totalTerra), g:true},{l:L.stats.cycles, v:S.cycles},{l:L.stats.built, v:S.built},{l:L.stats.pop, v:S.population}].map(s=>`<div class="sbox"><div class="sbl">${s.l}</div><div class="sbv${s.g?' g':''}">${s.v}</div></div>`).join(''); }
 }
-
 function togglePano() { const wrap=document.getElementById('panoWrap'), btn=document.getElementById('panoBtn'); wrap.classList.toggle('hidden'); btn.textContent=wrap.classList.contains('hidden')?'▼':'▲'; }
 function closePanel() { panelOpen=false; document.querySelector('.bottom').classList.remove('open'); document.querySelectorAll('.btab').forEach(t=>t.classList.remove('active')); S.sel=null; }
 
-// ═══════════════ ЭКОНОМИКА И ВРЕМЯ ═══════════════
 setInterval(()=>{ seasonIdx=(seasonIdx+1)%4; season=SEASONS[seasonIdx]; notify(L.seasons[season]); }, 60000);
-function runCycle() {
-  S.cycles++; const mult=S.boost&&Date.now()<S.boostEnd?2:1;
-  S.grid.forEach(b=>{
-    if(!b) return; const bd=B[b.t];
-    Object.entries(bd.prod).forEach(([k,v])=>{
-      if(k!=='rare_seed') { const am=Math.floor(v*b.lv*mult); S[k]=(S[k]||0)+am; if(k==='terra') S.totalTerra+=am; }
-    });
-  });
-  renderRes();
-}
-let cd=5;
-setInterval(()=>{ cd--; document.getElementById('ct').textContent=cd; if(cd<=0){ cd=5; runCycle(); } }, 1000);
+function runCycle() { S.cycles++; const mult=S.boost&&Date.now()<S.boostEnd?2:1; S.grid.forEach(b=>{ if(!b) return; const bd=B[b.t]; Object.entries(bd.prod).forEach(([k,v])=>{ if(k!=='rare_seed') { const am=Math.floor(v*b.lv*mult); S[k]=(S[k]||0)+am; if(k==='terra') S.totalTerra+=am; } }); }); renderRes(); }
+let cd=5; setInterval(()=>{ cd--; document.getElementById('ct').textContent=cd; if(cd<=0){ cd=5; runCycle(); } }, 1000);
 
-// ═══════════════ ОПЛАТА ═══════════════
 async function buyStars() {
-  unlockAudio(); sCoin();
-  if (!tg?.initData) { activateBoost(); return; }
-  try {
-    const res = await fetch(`${API_URL}/api/create-invoice`, {
-      method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData },
-      body: JSON.stringify({ productId: "boost" })
-    });
-    const data = await res.json();
-    if (data.link) {
-      tg.openInvoice(data.link, (status) => {
-        if (status === "paid") { notify("⭐ " + L.boostTitle); activateBoost(); }
-        else notify("❌ " + status);
-      });
-    } else notify("⚠ Error: " + (data.error || "unknown"));
-  } catch(e) { notify("⚠ Network error"); }
+  unlockAudio(); sCoin(); if (!tg?.initData) { activateBoost(); return; }
+  try { const res = await fetch(`${API_URL}/api/create-invoice`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify({ productId: "boost" }) }); const data = await res.json(); if (data.link) { tg.openInvoice(data.link, (status) => { if (status === "paid") { notify("⭐ " + L.boostTitle); activateBoost(); } else notify("❌ " + status); }); } else notify("⚠ Error: " + (data.error || "unknown")); } catch(e) { notify("⚠ Network error"); }
 }
 function activateBoost() { S.terra+=200; S.totalTerra+=200; S.boost=true; S.boostEnd=Date.now()+60000; notify('⭐ BOOST ×2 — 60s!'); setTimeout(()=>{S.boost=false;},60000); renderRes(); }
 
-// ═══════════════ СОХРАНЕНИЕ ═══════════════
+// WHEEL LOGIC
+let isSpinning = false;
+const WHEEL_PRIZES = [ { t: 'terra', v: 100, i: '💰' }, { t: 'seeds', v: 50, i: '🌱' }, { t: 'boost', v: 1, i: '⭐' }, { t: 'terra', v: 500, i: '💰' }, { t: 'food', v: 30, i: '🍞' }, { t: 'rare', v: 1, i: '🌟' }, { t: 'terra', v: 200, i: '💰' }, { t: 'seeds', v: 100, i: '🌱' } ];
+function openWheel() { document.getElementById('wheelModal').classList.add('open'); updateWheelState(); }
+function closeWheel() { document.getElementById('wheelModal').classList.remove('open'); }
+function updateWheelState() {
+  const btn = document.getElementById('spinBtn'); const now = Date.now(); const cooldown = 24 * 60 * 60 * 1000;
+  if (S.lastSpin && now - S.lastSpin < cooldown) { btn.disabled = true; const left = Math.ceil((cooldown - (now - S.lastSpin)) / 3600000); btn.textContent = `⏳ ${left} год.`; } else { btn.disabled = false; btn.textContent = 'КРУТИТИ!'; }
+}
+function spinWheel() {
+  if (isSpinning) return; const now = Date.now(); const cooldown = 24 * 60 * 60 * 1000; if (S.lastSpin && now - S.lastSpin < cooldown) return;
+  isSpinning = true; const btn = document.getElementById('spinBtn'); btn.disabled = true; btn.textContent = '...';
+  const wheel = document.getElementById('wheelImg'); const randomDeg = Math.floor(Math.random() * 360); const totalRotations = 5 * 360; const finalDeg = totalRotations + randomDeg;
+  wheel.style.transform = `rotate(${finalDeg}deg)`; sMachine();
+  setTimeout(() => {
+    const prizeIndex = Math.floor(randomDeg / 45) % WHEEL_PRIZES.length; const prize = WHEEL_PRIZES[prizeIndex];
+    if (prize.t === 'boost') { activateBoost(); notify('🎉 ВИГРАВ БУСТ ×2!'); }
+    else if (prize.t === 'rare') { S.rareSeeds.push({id:'w'+Date.now(), n:'Fortune Seed', i:'🌟', r:'Легендарне', c:'#c8500c', cnt:1}); notify('🌟 НЕЙМОВІРНА УДАЧА! Рідкісне насіння!'); }
+    else { S[prize.t] = (S[prize.t] || 0) + prize.v; if (prize.t === 'terra') S.totalTerra += prize.v; notify(`🎉 ВИГРАВ ${prize.i}${prize.v}!`); }
+    S.lastSpin = now; renderRes(); sCoin(); isSpinning = false; updateWheelState();
+    setTimeout(() => { wheel.style.transition = 'none'; wheel.style.transform = `rotate(${randomDeg}deg)`; setTimeout(()=>wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.1, 1)', 50); }, 4000);
+  }, 4200);
+}
+
 async function save() {
   if (!tg?.initData) { try { localStorage.setItem('kh6', JSON.stringify(S)); } catch(e) {} return; }
-  try {
-    const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx };
-    await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) });
-  } catch(e) { console.warn("Save failed:", e); }
+  try { const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx, lastSpin:S.lastSpin }; await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) }); } catch(e) {}
 }
 async function load() {
   if (!tg?.initData) { try { const d=JSON.parse(localStorage.getItem('kh6')||'null'); if(d) Object.assign(S,d); } catch(e) {} return; }
-  try {
-    const res = await fetch(`${API_URL}/api/load`, { headers: { "X-Telegram-Init-Data": tg.initData } });
-    const data = await res.json();
-    if (data.found) { Object.assign(S, data.data); if(data.data.seasonIdx!==undefined){ seasonIdx=data.data.seasonIdx; season=SEASONS[seasonIdx]; } notify(L.saveOk); }
-  } catch(e) { console.warn("Load failed:", e); }
+  try { const res = await fetch(`${API_URL}/api/load`, { headers: { "X-Telegram-Init-Data": tg.initData } }); const data = await res.json(); if (data.found) { Object.assign(S, data.data); if(data.data.seasonIdx!==undefined){ seasonIdx=data.data.seasonIdx; season=SEASONS[seasonIdx]; } notify(L.saveOk); } } catch(e) {}
 }
 
-// ═══════════════ СТАРТ ═══════════════
 window.addEventListener('load', ()=>resize());
 document.addEventListener('touchstart', unlockAudio, {once:true});
 document.addEventListener('click', unlockAudio, {once:true});
 
-load().then(() => {
-  updateUI();
-  renderRes();
-  renderBuild();
-  loop();
-  setInterval(save, 15000);
-});
+load().then(() => { updateUI(); renderRes(); renderBuild(); loop(); setInterval(save, 15000); });
 </script>
 </body>
 </html>
