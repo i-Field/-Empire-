@@ -1,0 +1,8 @@
+name = "hutor-empire-api"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+BOT_USERNAME = "твой_бот_username"
+# Секреты задаются через `wrangler secret put`:
+# TELEGRAM_BOT_TOKEN, WEBAPP_URL
