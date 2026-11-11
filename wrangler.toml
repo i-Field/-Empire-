@@ -2,10 +2,6 @@ name = "hutor-api"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 
-# KV (если захочешь хранить прогресс на сервере — пока не обяз.)
-# [[kv_namespaces]]
-# binding = "LUCKY_DB"
-# id = "вставишь_позже"
-
-[vars]
-# Публичные переменные (не секреты) — можно пусто
+[[kv_namespaces]]
+binding = "empire_DB"
+id = "7d2b6accd9d54b92b067bffff541055a"
