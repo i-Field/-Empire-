@@ -1,8 +1,11 @@
-name = "hutor-empire-api"
-main = "src/index.js"
+name = "hutor-api"
+main = "worker.js"
 compatibility_date = "2025-01-01"
 
+# KV (если захочешь хранить прогресс на сервере — пока не обяз.)
+# [[kv_namespaces]]
+# binding = "LUCKY_DB"
+# id = "вставишь_позже"
+
 [vars]
-BOT_USERNAME = "твой_бот_username"
-# Секреты задаются через `wrangler secret put`:
-# TELEGRAM_BOT_TOKEN, WEBAPP_URL
+# Публичные переменные (не секреты) — можно пусто
