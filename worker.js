@@ -7,7 +7,13 @@ export default {
       "Access-Control-Allow-Headers": "Content-Type, X-Telegram-Init-Data"
     };
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
-
+// ── 0. Автоматическая установка Webhook ──
+    if (url.pathname === "/api/set-webhook" && request.method === "GET") {
+      const webhookUrl = `https://${url.hostname}/api/webhook`;
+      const res = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/setWebhook?url=${webhookUrl}`);
+      const data = await res.json();
+      return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+    }
     // ── 1. Валидация Telegram initData ──
     const validateInitData = async (initData, botToken) => {
       const params = new URLSearchParams(initData);
