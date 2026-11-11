@@ -79,8 +79,6 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .sbv.g{color:#e0a020;}
 .notif{position:fixed;top:14px;left:50%;z-index:9999;transform:translateX(-50%) translateY(-80px);background:rgba(10,5,0,.98);border:2px solid #e0a020;border-radius:10px;padding:9px 18px;font-size:12px;font-weight:700;color:#d8b850;font-family:'Russo One',sans-serif;transition:transform .3s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.8);}
 .notif.show{transform:translateX(-50%) translateY(0);}
-
-/* MODALS */
 .wheel-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(4px);}
 .wheel-modal.open{display:flex;}
 .wheel-box{background:#1a0f05;border:3px solid #e0a020;border-radius:20px;padding:20px;text-align:center;width:90%;max-width:340px;box-shadow:0 0 40px rgba(240,180,30,0.3);position:relative;}
@@ -92,8 +90,6 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 .wheel-spin-btn{background:linear-gradient(135deg,#ffcc00,#e6a800);color:#000;font-family:'Russo One',sans-serif;font-size:18px;padding:12px 30px;border-radius:30px;border:3px solid #fff;cursor:pointer;box-shadow:0 4px 15px rgba(255,204,0,0.5);transition:transform 0.1s;}
 .wheel-spin-btn:active{transform:scale(0.95);}
 .wheel-spin-btn:disabled{background:#555;color:#aaa;border-color:#777;box-shadow:none;}
-
-/* LEADERBOARD */
 .lead-row{display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,.05);border-radius:8px;margin-bottom:5px;border:1px solid rgba(200,160,50,.2);}
 .lead-row.me{border-color:#a0d040;background:rgba(50,100,0,.3);}
 .lead-rank{font-family:'Russo One';font-size:14px;color:#e0a020;width:30px;}
@@ -104,10 +100,7 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 <body>
 <div class="app">
   <div class="pano-wrap" id="panoWrap">
-    <div class="pano-header">
-      <span class="pano-title" id="panoTitle">🌿 ХУТІР RASTAMANIA</span>
-      <button class="pano-close" onclick="togglePano()" id="panoBtn">▲</button>
-    </div>
+    <div class="pano-header"><span class="pano-title" id="panoTitle">🌿 ХУТІР RASTAMANIA</span><button class="pano-close" onclick="togglePano()" id="panoBtn">▲</button></div>
     <div class="pano-canvas-wrap"><canvas id="panoCanvas" height="90"></canvas></div>
   </div>
   <div class="topbar">
@@ -126,11 +119,8 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
   <div class="game-wrap"><canvas id="gameCanvas"></canvas></div>
   <div class="bottom-spacer"></div>
   <div class="stars-bar">
-    <div class="stars-info">
-      <span class="stars-ico">⭐</span>
-      <div><strong id="boostTitle">ЗОРЯНИЙ БУСТ</strong><span id="boostDesc">+200💰 · ×2 · 60с</span></div>
-    </div>
-    <button class="stars-btn" id="boostBtn" onclick="buyStars()">50 ⭐</button>
+    <div class="stars-info"><span class="stars-ico">⭐</span><div><strong id="boostTitle">МАГАЗИН</strong><span id="boostDesc">Бонуси за Зірки</span></div></div>
+    <button class="stars-btn" id="boostBtn" onclick="sp('shop')">ВІДКРИТИ</button>
   </div>
   <div class="bottom">
     <div class="btabs">
@@ -139,6 +129,7 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
       <div class="btab" id="tab-info" onclick="sp('info')"><span class="bi">📍</span><span id="tab-t-info">Будівля</span></div>
       <div class="btab" id="tab-quests" onclick="sp('quests')"><span class="bi">🎯</span><span id="tab-t-quests">Квести</span></div>
       <div class="btab" id="tab-top" onclick="sp('top')"><span class="bi">🏆</span><span id="tab-t-top">ТОП-10</span></div>
+      <div class="btab" id="tab-friends" onclick="sp('friends')"><span class="bi">🤝</span><span id="tab-t-friends">Друзі</span></div>
       <div class="btab" id="tab-stats" onclick="sp('stats')"><span class="bi">📊</span><span id="tab-t-stats">Місто</span></div>
     </div>
     <div class="bc">
@@ -146,26 +137,23 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
       <div id="panel-info" style="display:none"><div id="icontent"></div></div>
       <div id="panel-quests" style="display:none"></div>
       <div id="panel-top" style="display:none"><div id="lead-list" style="padding:5px 0;"><p style="text-align:center;color:#a09060;">Завантаження...</p></div></div>
+      <div id="panel-shop" style="display:none"></div>
+      <div id="panel-friends" style="display:none"></div>
       <div id="panel-stats" style="display:none"><div class="sgrid" id="sgrid"></div></div>
     </div>
   </div>
 </div>
 <div class="notif" id="notif"></div>
 
-<!-- WHEEL MODAL -->
 <div class="wheel-modal" id="wheelModal">
   <div class="wheel-box">
     <button class="wheel-close" onclick="closeWheel()">✕</button>
     <div class="wheel-title">🎡 КОЛЕСО ФОРТУНИ</div>
-    <div class="wheel-container">
-      <div class="wheel-pointer">▼</div>
-      <div class="wheel-img" id="wheelImg"></div>
-    </div>
+    <div class="wheel-container"><div class="wheel-pointer">▼</div><div class="wheel-img" id="wheelImg"></div></div>
     <button class="wheel-spin-btn" id="spinBtn" onclick="spinWheel()">КРУТИТИ!</button>
   </div>
 </div>
 
-<!-- OFFLINE MODAL -->
 <div class="wheel-modal" id="offlineModal">
   <div class="wheel-box" style="border-color:#70b020; box-shadow:0 0 40px rgba(100,180,20,0.4);">
     <div class="wheel-title" style="color:#a0d040;">🎁 ФЕРМА ПРАЦЮВАЛА!</div>
@@ -179,34 +167,23 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 <script>
 'use strict';
 const API_URL = "https://empire.qx420.workers.dev";
-const COLS = 5, ROWS = 4;
-const HEX_R = 44;
-const HEX_W = HEX_R * Math.sqrt(3);
-const DAY = 90000;
-let panelOpen = false;
+const COLS = 5, ROWS = 4, HEX_R = 44, HEX_W = HEX_R * Math.sqrt(3), DAY = 90000;
+let panelOpen = false, currentLang = localStorage.getItem('kh_lang') || 'ua';
+const pano = document.getElementById('panoCanvas'), pc = pano.getContext('2d');
+const game = document.getElementById('gameCanvas'), gc = game.getContext('2d');
 
-const pano = document.getElementById('panoCanvas');
-const pc = pano.getContext('2d');
-const game = document.getElementById('gameCanvas');
-const gc = game.getContext('2d');
-
-let currentLang = localStorage.getItem('kh_lang') || 'ua';
 const TEXTS = {
-  ua: { panoTitle: "🌿 ХУТІР RASTAMANIA", boostTitle: "ЗОРЯНИЙ БУСТ", boostDesc: "+200💰 · ×2 · 60с", tabs: { build: "Будувати", info: "Будівля", quests: "Квести", top: "ТОП-10", chain: "Ланцюг", stats: "Місто" }, notEnough: "⚠ Не вистачає: ", built: "✅ збудовано!", upgraded: "⬆ Апгрейд!", demolished: "🗑 Знесено +", maxLvl: "МАКС РІВЕНЬ", saveOk: "☁️ Збережено", selectTile: "Обери клітинку", seasons: { spring: "🌸 Весна", summer: "🌞 Літо", autumn: "🍂 Осінь", winter: "❄️ Зима" }, stats: { earned: "💰 Зароблено", cycles: "🔄 Циклів", built: "🏗 Будівель", pop: "👥 Населення" } },
-  ru: { panoTitle: "🌿 ХУТОР RASTAMANIA", boostTitle: "ЗВЕЗДНЫЙ БУСТ", boostDesc: "+200💰 · ×2 · 60с", tabs: { build: "Строить", info: "Здание", quests: "Квесты", top: "ТОП-10", chain: "Цепочка", stats: "Город" }, notEnough: "⚠ Не хватает: ", built: "✅ построено!", upgraded: "⬆ Апгрейд!", demolished: "🗑 Снесено +", maxLvl: "МАКС УРОВЕНЬ", saveOk: "☁️ Сохранено", selectTile: "Выбери клетку", seasons: { spring: "🌸 Весна", summer: "🌞 Лето", autumn: "🍂 Осень", winter: "❄️ Зима" }, stats: { earned: "💰 Заработано", cycles: "🔄 Циклов", built: "🏗 Зданий", pop: "👥 Население" } },
-  en: { panoTitle: "🌿 RASTAMANIA FARM", boostTitle: "STAR BOOST", boostDesc: "+200💰 · ×2 · 60s", tabs: { build: "Build", info: "Building", quests: "Quests", top: "TOP-10", chain: "Chain", stats: "City" }, notEnough: "⚠ Not enough: ", built: "✅ built!", upgraded: "⬆ Upgraded!", demolished: "🗑 Demolished +", maxLvl: "MAX LEVEL", saveOk: "☁️ Saved", selectTile: "Select a tile", seasons: { spring: "🌸 Spring", summer: "🌞 Summer", autumn: "🍂 Autumn", winter: "❄️ Winter" }, stats: { earned: "💰 Earned", cycles: "🔄 Cycles", built: "🏗 Buildings", pop: "👥 Population" } }
+  ua: { panoTitle:"🌿 ХУТІР RASTAMANIA", boostTitle:"МАГАЗИН", boostDesc:"Бонуси за Зірки", tabs:{build:"Будувати",info:"Будівля",quests:"Квести",top:"ТОП-10",friends:"Друзі",stats:"Місто"}, notEnough:"⚠ Не вистачає: ", built:"✅ збудовано!", upgraded:"⬆ Апгрейд!", demolished:"🗑 Знесено +", maxLvl:"МАКС РІВЕНЬ", saveOk:"☁️ Збережено", selectTile:"Обери клітинку", seasons:{spring:"🌸 Весна",summer:"🌞 Літо",autumn:"🍂 Осінь",winter:"❄️ Зима"}, stats:{earned:"💰 Зароблено",cycles:"🔄 Циклів",built:"🏗 Будівель",pop:"👥 Населення"} },
+  ru: { panoTitle:"🌿 ХУТОР RASTAMANIA", boostTitle:"МАГАЗИН", boostDesc:"Бонусы за Звезды", tabs:{build:"Строить",info:"Здание",quests:"Квесты",top:"ТОП-10",friends:"Друзья",stats:"Город"}, notEnough:"⚠ Не хватает: ", built:"✅ построено!", upgraded:"⬆ Апгрейд!", demolished:"🗑 Снесено +", maxLvl:"МАКС УРОВЕНЬ", saveOk:"☁️ Сохранено", selectTile:"Выбери клетку", seasons:{spring:"🌸 Весна",summer:"🌞 Лето",autumn:"🍂 Осень",winter:"❄️ Зима"}, stats:{earned:"💰 Заработано",cycles:"🔄 Циклов",built:"🏗 Зданий",pop:"👥 Население"} },
+  en: { panoTitle:"🌿 RASTAMANIA FARM", boostTitle:"SHOP", boostDesc:"Bonuses for Stars", tabs:{build:"Build",info:"Building",quests:"Quests",top:"TOP-10",friends:"Friends",stats:"City"}, notEnough:"⚠ Not enough: ", built:"✅ built!", upgraded:"⬆ Upgraded!", demolished:"🗑 Demolished +", maxLvl:"MAX LEVEL", saveOk:"☁️ Saved", selectTile:"Select a tile", seasons:{spring:"🌸 Spring",summer:"🌞 Summer",autumn:"🍂 Autumn",winter:"❄️ Winter"}, stats:{earned:"💰 Earned",cycles:"🔄 Cycles",built:"🏗 Buildings",pop:"👥 Population"} }
 };
 const L = TEXTS[currentLang];
 
 function cycleLang() {
-  const langs = ['ua', 'ru', 'en'];
-  let idx = langs.indexOf(currentLang);
-  currentLang = langs[(idx + 1) % langs.length];
-  localStorage.setItem('kh_lang', currentLang);
-  updateUI(); renderBuild(); renderRes();
-  notify(currentLang === 'ua' ? "Мову змінено 🇺🇦" : currentLang === 'ru' ? "Язык изменен 🇷🇺" : "Language changed 🇬🇧");
+  const langs = ['ua', 'ru', 'en']; let idx = langs.indexOf(currentLang);
+  currentLang = langs[(idx + 1) % langs.length]; localStorage.setItem('kh_lang', currentLang);
+  updateUI(); renderBuild(); renderRes(); notify(currentLang === 'ua' ? "Мову змінено 🇺🇦" : currentLang === 'ru' ? "Язык изменен 🇷🇺" : "Language changed 🇬🇧");
 }
-
 function updateUI() {
   const l = TEXTS[currentLang];
   document.getElementById('langBtn').textContent = currentLang.toUpperCase();
@@ -217,6 +194,7 @@ function updateUI() {
   document.getElementById('tab-t-info').textContent = l.tabs.info;
   document.getElementById('tab-t-quests').textContent = l.tabs.quests;
   document.getElementById('tab-t-top').textContent = l.tabs.top;
+  document.getElementById('tab-t-friends').textContent = l.tabs.friends;
   document.getElementById('tab-t-stats').textContent = l.tabs.stats;
   if(!S.sel) document.getElementById('icontent').innerHTML = `<p style="text-align:center;color:rgba(200,160,50,.35);padding:18px 0;font-style:italic">${l.selectTile}</p>`;
 }
@@ -227,25 +205,11 @@ function unlockAudio() { if (audioReady) return; audioReady = true; try { getA()
 function mkNoise(dur) { const a = getA(), buf = a.createBuffer(1, a.sampleRate * dur, a.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return buf; }
 function pOsc(f, t, type, dur, vol, dest) { try { const a = getA(), o = a.createOscillator(), g = a.createGain(); o.type = type || 'sine'; o.frequency.value = f; o.connect(g); g.connect(dest || mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || 0.1, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.start(t); o.stop(t + dur); } catch (e) {} }
 function pNoise(t, dur, freq, Q, vol) { try { const a = getA(), s = a.createBufferSource(); s.buffer = mkNoise(dur); const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = Q || 1; const g = a.createGain(); s.connect(f); f.connect(g); g.connect(mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || 0.08, t + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.start(t); s.stop(t + dur); } catch (e) {} }
-
-const BPM = 70, BD = 60 / BPM;
-const CH = { Cm: [130.8, 155.6, 196], Fm: [174.6, 207.7, 261.6], Bb: [116.5, 146.8, 174.6], Gm: [98, 116.5, 146.8] };
-const CS = ['Cm', 'Cm', 'Fm', 'Fm', 'Bb', 'Gm', 'Cm', 'Cm'];
-const BN = { Cm: 65.4, Fm: 87.3, Bb: 58.3, Gm: 49 };
-
-function schedBar(t, bar) {
-  if (!musicPlaying) return;
-  const ch = CH[CS[bar % 8]], bn = BN[CS[bar % 8]];
-  ch.forEach(f => { pOsc(f, t, 'triangle', BD * 3.8, 0.04); pOsc(f * 2, t + BD * 0.1, 'sine', BD * 3.2, 0.01); });
-  [0, 2, 3.5].forEach(o => pOsc(bn, t + BD * o, 'sine', BD * 0.35, 0.15));
-  [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].forEach(o => pNoise(t + BD * o, 0.07, 8000, 0.8, o % 1 === 0 ? 0.03 : 0.01));
-  [0, 2].forEach(o => { pNoise(t + BD * o, 0.14, 80, 0.5, 0.1); pOsc(55, t + BD * o, 'sine', 0.12, 0.1); });
-  mTimer = setTimeout(() => schedBar(t + BD * 4, bar + 1), (BD * 4 - 0.1) * 1000);
-}
+const BPM = 70, BD = 60 / BPM, CH = { Cm: [130.8, 155.6, 196], Fm: [174.6, 207.7, 261.6], Bb: [116.5, 146.8, 174.6], Gm: [98, 116.5, 146.8] }, CS = ['Cm', 'Cm', 'Fm', 'Fm', 'Bb', 'Gm', 'Cm', 'Cm'], BN = { Cm: 65.4, Fm: 87.3, Bb: 58.3, Gm: 49 };
+function schedBar(t, bar) { if (!musicPlaying) return; const ch = CH[CS[bar % 8]], bn = BN[CS[bar % 8]]; ch.forEach(f => { pOsc(f, t, 'triangle', BD * 3.8, 0.04); pOsc(f * 2, t + BD * 0.1, 'sine', BD * 3.2, 0.01); }); [0, 2, 3.5].forEach(o => pOsc(bn, t + BD * o, 'sine', BD * 0.35, 0.15)); [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].forEach(o => pNoise(t + BD * o, 0.07, 8000, 0.8, o % 1 === 0 ? 0.03 : 0.01)); [0, 2].forEach(o => { pNoise(t + BD * o, 0.14, 80, 0.5, 0.1); pOsc(55, t + BD * o, 'sine', 0.12, 0.1); }); mTimer = setTimeout(() => schedBar(t + BD * 4, bar + 1), (BD * 4 - 0.1) * 1000); }
 function startMusic() { if (musicPlaying || !actx) return; musicPlaying = true; schedBar(actx.currentTime + 0.1, 0); }
 function stopMusic() { musicPlaying = false; clearTimeout(mTimer); }
 function toggleMusic() { unlockAudio(); musicOn = !musicOn; if (musicOn) startMusic(); else stopMusic(); document.getElementById('musicBtn').textContent = musicOn ? '🎵' : '🔇'; }
-
 function sBird() { try { const a = getA(), t = a.currentTime, o = a.createOscillator(), g = a.createGain(); o.type = 'sine'; o.connect(g); g.connect(mGain); o.frequency.setValueAtTime(2200, t); o.frequency.setValueAtTime(2800, t + 0.06); o.frequency.setValueAtTime(2100, t + 0.12); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.08, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18); o.start(t); o.stop(t + 0.18); } catch (e) {} }
 function sBees() { try { const a = getA(), t = a.currentTime, c = a.createOscillator(), m = a.createOscillator(), mg = a.createGain(), g = a.createGain(); c.type = 'sawtooth'; c.frequency.value = 180; m.type = 'sine'; m.frequency.value = 140; mg.gain.value = 60; m.connect(mg); mg.connect(c.frequency); c.connect(g); g.connect(mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t + 0.1); g.gain.setValueAtTime(0.2, t + 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6); c.start(t); c.stop(t + 0.6); m.start(t); m.stop(t + 0.6); } catch (e) {} }
 function sMachine() { [0, 0.1, 0.2, 0.35].forEach((d, i) => { pOsc(80 + i * 20, getA().currentTime + d, 'square', 0.08, 0.08); pNoise(getA().currentTime + d, 0.05, 500, 0.5, 0.05); }); }
@@ -256,7 +220,6 @@ function soundTile(type) { if (!audioReady) return; const map = { hemp_farm: sWi
 
 function resize() { const w = Math.min(window.innerWidth, 430); const hexH = Math.round(ROWS * 44 * 1.5 + 44 * 2); game.width = w; game.height = hexH; const pw = Math.min(w - 20, 390); pano.width = pw; pano.height = 90; }
 resize(); window.addEventListener('resize', resize);
-
 function hexCenter(col, row) { const offX = (game.width - (COLS * HEX_W + HEX_W * 0.5)) / 2; const offY = HEX_R; const x = offX + col * HEX_W + (row % 2 === 1 ? HEX_W / 2 : 0) + HEX_W / 2; const y = offY + row * HEX_R * 1.5 + HEX_R; return { x, y }; }
 function hexPath(ctx, cx, cy, r) { ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; const x = cx + r * Math.cos(a); const y = cy + r * Math.sin(a); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.closePath(); }
 function pixelToHex(px, py) { let best = -1, bestDist = HEX_R * 1.1; for (let i = 0; i < COLS * ROWS; i++) { const col = i % COLS, row = Math.floor(i / COLS); const { x, y } = hexCenter(col, row); const d = Math.sqrt((px - x) ** 2 + (py - y) ** 2); if (d < bestDist) { bestDist = d; best = i; } } return best; }
@@ -269,25 +232,25 @@ const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.disableVerticalSwipes?.(); }
 
 const B = {
-  hemp_farm: {i:'🌿', cost:{terra:10}, prod:{seeds:3}, cons:{}, cy:'+3🌱', ul:0, n:{ua:'Конопляна ферма', ru:'Конопляная ферма', en:'Hemp Farm'}, desc:{ua:'Технічна конопля.', ru:'Техническая конопля.', en:'Industrial hemp.'}, ch:{ua:'→ Насіння → Волокно/Олія', ru:'→ Семена → Волокно/Масло', en:'→ Seeds → Fiber/Oil'}},
-  sunflower: {i:'🌻', cost:{terra:20}, prod:{oil:1,food:2}, cons:{}, cy:'+1🫗+2🍞', ul:0, n:{ua:'Соняшникове поле', ru:'Подсолнечное поле', en:'Sunflower Field'}, desc:{ua:'Олія та їжа.', ru:'Масло и еда.', en:'Oil and food.'}, ch:{ua:'→ Олія · Їжа', ru:'→ Масло · Еда', en:'→ Oil · Food'}},
-  corn_field: {i:'🌽', cost:{terra:18}, prod:{food:4}, cons:{}, cy:'+4🍞', ul:0, n:{ua:'Кукурудзяне поле', ru:'Кукурузное поле', en:'Corn Field'}, desc:{ua:'Їжа для населення.', ru:'Еда для населения.', en:'Food for population.'}, ch:{ua:'→ Їжа → Населення', ru:'→ Еда → Население', en:'→ Food → Population'}},
-  poppy: {i:'🌺', cost:{terra:15}, prod:{medicine_base:1}, cons:{}, cy:'+1💊', ul:0, n:{ua:'Макове поле', ru:'Маковое поле', en:'Poppy Field'}, desc:{ua:'Фармацевтичний мак.', ru:'Фармацевтический мак.', en:'Pharmaceutical poppy.'}, ch:{ua:'→ Ліки', ru:'→ Лекарства', en:'→ Medicine'}},
-  beehive: {i:'🐝', cost:{terra:25}, prod:{terra:4,food:1}, cons:{}, cy:'+4💰+1🍞', ul:0, n:{ua:'Пасіка', ru:'Пасека', en:'Beehive'}, desc:{ua:'Мед та запилення.', ru:'Мед и опыление.', en:'Honey and pollination.'}, ch:{ua:'→ Терра · Їжа', ru:'→ Терра · Еда', en:'→ Terra · Food'}},
-  greenhouse: {i:'🪴', cost:{terra:45,seeds:5}, prod:{food:3,seeds:2}, cons:{energy:1}, cy:'+3🍞+2🌱', ul:1, n:{ua:'Теплиця', ru:'Теплица', en:'Greenhouse'}, desc:{ua:'Цілорічне вирощування.', ru:'Круглогодичное выращивание.', en:'Year-round growing.'}, ch:{ua:'Енергія → Їжа+Насіння', ru:'Энергия → Еда+Семена', en:'Energy → Food+Seeds'}},
-  press: {i:'⚙️', cost:{terra:35,seeds:5}, prod:{fiber:2,oil:1}, cons:{seeds:3}, cy:'+2🧵+1🫗', ul:1, n:{ua:'Прес-завод', ru:'Пресс-завод', en:'Press Plant'}, desc:{ua:'Насіння → волокно.', ru:'Семена → волокно.', en:'Seeds → fiber.'}, ch:{ua:'Насіння → Волокно+Олія', ru:'Семена → Волокно+Масло', en:'Seeds → Fiber+Oil'}},
-  mill: {i:'⚗️', cost:{terra:40,seeds:5}, prod:{food:3}, cons:{seeds:2}, cy:'+3🍞', ul:1, n:{ua:'Вітряний млин', ru:'Ветряная мельница', en:'Windmill'}, desc:{ua:'Борошно та протеїн.', ru:'Мука и протеин.', en:'Flour and protein.'}, ch:{ua:'Насіння → Їжа', ru:'Семена → Еда', en:'Seeds → Food'}},
-  rope: {i:'🧵', cost:{terra:50,fiber:3}, prod:{terra:6}, cons:{fiber:1}, cy:'+6💰', ul:1, n:{ua:'Канатний цех', ru:'Канатный цех', en:'Rope Workshop'}, desc:{ua:'Морські канати.', ru:'Морские канаты.', en:'Marine ropes.'}, ch:{ua:'Волокно → Терра', ru:'Волокно → Терра', en:'Fiber → Terra'}},
-  solar: {i:'☀️', cost:{terra:70}, prod:{energy:2}, cons:{}, cy:'+2⚡', ul:1, n:{ua:'Сонячна панель', ru:'Солнечная панель', en:'Solar Panel'}, desc:{ua:'Зелена енергія.', ru:'Зеленая энергия.', en:'Green energy.'}, ch:{ua:'→ Енергія', ru:'→ Энергия', en:'→ Energy'}},
-  house: {i:'🏠', cost:{terra:30,food:3}, prod:{population:1}, cons:{food:1}, cy:'+1👥', ul:1, n:{ua:'Оселя', ru:'Жилище', en:'House'}, desc:{ua:'Жителі — дохід.', ru:'Жители — доход.', en:'Citizens — income.'}, ch:{ua:'Їжа → Населення', ru:'Еда → Население', en:'Food → Population'}},
-  oil_press: {i:'🫗', cost:{terra:60,seeds:10}, prod:{oil:2}, cons:{seeds:4}, cy:'+2🫗', ul:2, n:{ua:'Олієпресовий цех', ru:'Маслопрессовый цех', en:'Oil Press'}, desc:{ua:'Холодне пресування.', ru:'Холодный отжим.', en:'Cold pressing.'}, ch:{ua:'Насіння → Олія', ru:'Семена → Масло', en:'Seeds → Oil'}},
-  paint: {i:'🎨', cost:{terra:80,oil:2}, prod:{terra:7}, cons:{oil:1}, cy:'+7💰', ul:2, n:{ua:'Фарбовий завод', ru:'Красочный завод', en:'Paint Factory'}, desc:{ua:'Натуральні фарби.', ru:'Натуральные краски.', en:'Natural paints.'}, ch:{ua:'Олія → Терра', ru:'Масло → Терра', en:'Oil → Terra'}},
-  market: {i:'🏪', cost:{terra:100}, prod:{terra:5}, cons:{food:1}, cy:'+5💰', ul:2, n:{ua:'Ринок', ru:'Рынок', en:'Market'}, desc:{ua:'Торгівля.', ru:'Торговля.', en:'Trade.'}, ch:{ua:'→ Терра', ru:'→ Терра', en:'→ Terra'}},
-  pharma: {i:'💊', cost:{terra:120,oil:3}, prod:{terra:12}, cons:{oil:1,medicine_base:1}, cy:'+12💰', ul:3, n:{ua:'Фармацевтика', ru:'Фармацевтика', en:'Pharma'}, desc:{ua:'CBD та ліки.', ru:'CBD и лекарства.', en:'CBD and meds.'}, ch:{ua:'Олія+Мак → Терра', ru:'Масло+Мак → Терра', en:'Oil+Poppy → Terra'}},
-  textile: {i:'👕', cost:{terra:150,fiber:10}, prod:{terra:15}, cons:{fiber:2}, cy:'+15💰', ul:4, n:{ua:'Текстильний цех', ru:'Текстильный цех', en:'Textile Mill'}, desc:{ua:'Конопляна тканина.', ru:'Конопляная ткань.', en:'Hemp fabric.'}, ch:{ua:'Волокно → Терра', ru:'Волокно → Терра', en:'Fiber → Terra'}},
-  bioplastic: {i:'🛢️', cost:{terra:180,fiber:8,oil:5}, prod:{terra:18}, cons:{fiber:2,oil:1}, cy:'+18💰', ul:4, n:{ua:'Біо-пластик', ru:'Био-пластик', en:'Bioplastic'}, desc:{ua:'Біопластик.', ru:'Биопластик.', en:'Bioplastic.'}, ch:{ua:'Волокно+Олія → Терра', ru:'Волокно+Масло → Терра', en:'Fiber+Oil → Terra'}},
-  lab: {i:'🔬', cost:{terra:200}, prod:{}, cons:{energy:1}, cy:'🔓', ul:3, n:{ua:'Науковий центр', ru:'Научный центр', en:'Research Lab'}, desc:{ua:'Технології.', ru:'Технологии.', en:'Technologies.'}, ch:{ua:'Енергія → Апгрейди', ru:'Энергия → Апгрейды', en:'Energy → Upgrades'}},
-  seed_bank: {i:'🫙', cost:{terra:250}, prod:{rare_seed:0.2}, cons:{seeds:5}, cy:'🌟NFT', ul:5, n:{ua:'Банк насіння', ru:'Банк семян', en:'Seed Bank'}, desc:{ua:'Рідкісне насіння!', ru:'Редкие семена!', en:'Rare seeds!'}, ch:{ua:'→ NFT на TON', ru:'→ NFT на TON', en:'→ NFT on TON'}},
+  hemp_farm: {i:'🌿', cost:{terra:10}, prod:{seeds:3}, cons:{}, cy:'+3🌱', ul:0, n:{ua:'Конопляна ферма', ru:'Конопляная ферма', en:'Hemp Farm'}, desc:{ua:'Технічна конопля.', ru:'Техническая конопля.', en:'Industrial hemp.'}},
+  sunflower: {i:'🌻', cost:{terra:20}, prod:{oil:1,food:2}, cons:{}, cy:'+1🫗+2🍞', ul:0, n:{ua:'Соняшникове поле', ru:'Подсолнечное поле', en:'Sunflower Field'}, desc:{ua:'Олія та їжа.', ru:'Масло и еда.', en:'Oil and food.'}},
+  corn_field: {i:'🌽', cost:{terra:18}, prod:{food:4}, cons:{}, cy:'+4🍞', ul:0, n:{ua:'Кукурудзяне поле', ru:'Кукурузное поле', en:'Corn Field'}, desc:{ua:'Їжа для населення.', ru:'Еда для населения.', en:'Food for population.'}},
+  poppy: {i:'🌺', cost:{terra:15}, prod:{medicine_base:1}, cons:{}, cy:'+1💊', ul:0, n:{ua:'Макове поле', ru:'Маковое поле', en:'Poppy Field'}, desc:{ua:'Фармацевтичний мак.', ru:'Фармацевтический мак.', en:'Pharmaceutical poppy.'}},
+  beehive: {i:'🐝', cost:{terra:25}, prod:{terra:4,food:1}, cons:{}, cy:'+4💰+1🍞', ul:0, n:{ua:'Пасіка', ru:'Пасека', en:'Beehive'}, desc:{ua:'Мед та запилення.', ru:'Мед и опыление.', en:'Honey and pollination.'}},
+  greenhouse: {i:'🪴', cost:{terra:45,seeds:5}, prod:{food:3,seeds:2}, cons:{energy:1}, cy:'+3🍞+2🌱', ul:1, n:{ua:'Теплиця', ru:'Теплица', en:'Greenhouse'}, desc:{ua:'Цілорічне вирощування.', ru:'Круглогодичное выращивание.', en:'Year-round growing.'}},
+  press: {i:'⚙️', cost:{terra:35,seeds:5}, prod:{fiber:2,oil:1}, cons:{seeds:3}, cy:'+2🧵+1🫗', ul:1, n:{ua:'Прес-завод', ru:'Пресс-завод', en:'Press Plant'}, desc:{ua:'Насіння → волокно.', ru:'Семена → волокно.', en:'Seeds → fiber.'}},
+  mill: {i:'⚗️', cost:{terra:40,seeds:5}, prod:{food:3}, cons:{seeds:2}, cy:'+3🍞', ul:1, n:{ua:'Вітряний млин', ru:'Ветряная мельница', en:'Windmill'}, desc:{ua:'Борошно та протеїн.', ru:'Мука и протеин.', en:'Flour and protein.'}},
+  rope: {i:'🧵', cost:{terra:50,fiber:3}, prod:{terra:6}, cons:{fiber:1}, cy:'+6💰', ul:1, n:{ua:'Канатний цех', ru:'Канатный цех', en:'Rope Workshop'}, desc:{ua:'Морські канати.', ru:'Морские канаты.', en:'Marine ropes.'}},
+  solar: {i:'☀️', cost:{terra:70}, prod:{energy:2}, cons:{}, cy:'+2⚡', ul:1, n:{ua:'Сонячна панель', ru:'Солнечная панель', en:'Solar Panel'}, desc:{ua:'Зелена енергія.', ru:'Зеленая энергия.', en:'Green energy.'}},
+  house: {i:'🏠', cost:{terra:30,food:3}, prod:{population:1}, cons:{food:1}, cy:'+1👥', ul:1, n:{ua:'Оселя', ru:'Жилище', en:'House'}, desc:{ua:'Жителі — дохід.', ru:'Жители — доход.', en:'Citizens — income.'}},
+  oil_press: {i:'🫗', cost:{terra:60,seeds:10}, prod:{oil:2}, cons:{seeds:4}, cy:'+2🫗', ul:2, n:{ua:'Олієпресовий цех', ru:'Маслопрессовый цех', en:'Oil Press'}, desc:{ua:'Холодне пресування.', ru:'Холодный отжим.', en:'Cold pressing.'}},
+  paint: {i:'🎨', cost:{terra:80,oil:2}, prod:{terra:7}, cons:{oil:1}, cy:'+7💰', ul:2, n:{ua:'Фарбовий завод', ru:'Красочный завод', en:'Paint Factory'}, desc:{ua:'Натуральні фарби.', ru:'Натуральные краски.', en:'Natural paints.'}},
+  market: {i:'🏪', cost:{terra:100}, prod:{terra:5}, cons:{food:1}, cy:'+5💰', ul:2, n:{ua:'Ринок', ru:'Рынок', en:'Market'}, desc:{ua:'Торгівля.', ru:'Торговля.', en:'Trade.'}},
+  pharma: {i:'💊', cost:{terra:120,oil:3}, prod:{terra:12}, cons:{oil:1,medicine_base:1}, cy:'+12💰', ul:3, n:{ua:'Фармацевтика', ru:'Фармацевтика', en:'Pharma'}, desc:{ua:'CBD та ліки.', ru:'CBD и лекарства.', en:'CBD and meds.'}},
+  textile: {i:'👕', cost:{terra:150,fiber:10}, prod:{terra:15}, cons:{fiber:2}, cy:'+15💰', ul:4, n:{ua:'Текстильний цех', ru:'Текстильный цех', en:'Textile Mill'}, desc:{ua:'Конопляна тканина.', ru:'Конопляная ткань.', en:'Hemp fabric.'}},
+  bioplastic: {i:'🛢️', cost:{terra:180,fiber:8,oil:5}, prod:{terra:18}, cons:{fiber:2,oil:1}, cy:'+18💰', ul:4, n:{ua:'Біо-пластик', ru:'Био-пластик', en:'Bioplastic'}, desc:{ua:'Біопластик.', ru:'Биопластик.', en:'Bioplastic.'}},
+  lab: {i:'🔬', cost:{terra:200}, prod:{}, cons:{energy:1}, cy:'🔓', ul:3, n:{ua:'Науковий центр', ru:'Научный центр', en:'Research Lab'}, desc:{ua:'Технології.', ru:'Технологии.', en:'Technologies.'}},
+  seed_bank: {i:'🫙', cost:{terra:250}, prod:{rare_seed:0.2}, cons:{seeds:5}, cy:'🌟NFT', ul:5, n:{ua:'Банк насіння', ru:'Банк семян', en:'Seed Bank'}, desc:{ua:'Рідкісне насіння!', ru:'Редкие семена!', en:'Rare seeds!'}},
 };
 
 const RICONS = {terra:'💰', seeds:'🌱', fiber:'🧵', oil:'🫗', food:'🍞', population:'👥', energy:'⚡', medicine_base:'💊'};
@@ -295,7 +258,7 @@ const RD = [{k:'terra',i:'💰'},{k:'seeds',i:'🌱'},{k:'fiber',i:'🧵'},{k:'o
 const SEASONS = ['spring','summer','autumn','winter'];
 
 let seasonIdx = 1, season = 'summer', weather = 'clear';
-let S = { terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0, totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0, lastSpin: 0, lastSeen: 0, grid: Array(20).fill(null), sel: null, rareSeeds: [], quests: { q_build: 0, q_earn: 0, q_spin: 0, claimed: [] }, refBonus: false };
+let S = { terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0, totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0, lastSpin: 0, lastSeen: 0, autoCollect: false, grid: Array(20).fill(null), sel: null, rareSeeds: [], quests: { q_build: 0, q_earn: 0, q_spin: 0, claimed: [] }, refBonus: false };
 let frame = 0, beeAngle = 0;
 const clouds = [{x:60,sp:.22},{x:250,sp:.15},{x:140,sp:.1}];
 const birds = [{x:-50,y:26,sp:.9,w:0},{x:-160,y:18,sp:.55,w:2},{x:-300,y:34,sp:1.1,w:4}];
@@ -414,7 +377,7 @@ function renderInfo(i) {
 function doUpg(i) { const b=S.grid[i]; const uc=Math.floor(50*Math.pow(2,b.lv-1)); if(b.lv>=3){notify(L.maxLvl);return;} if(S.terra<uc){notify('⚠ 💰'+uc);return;} S.terra-=uc; b.lv++; sBuild(); notify(L.upgraded+' Lv'+b.lv); renderRes(); renderInfo(i); }
 function doDel(i) { const ref=Math.floor(B[S.grid[i].t].cost.terra*.5); S.terra+=ref; S.grid[i]=null; S.sel=null; notify(L.demolished+'💰'+ref); renderRes(); sp('build'); renderBuild(); }
 
-const PANELS=['build','info','quests','top','stats'];
+const PANELS=['build','info','quests','top','friends','stats'];
 function sp(n) {
   const bottom=document.querySelector('.bottom');
   if(panelOpen && PANELS.indexOf(n)>=0) { const activePanel=PANELS[Array.from(document.querySelectorAll('.btab')).findIndex(t=>t.classList.contains('active'))]; if(activePanel===n) { closePanel(); return; } }
@@ -423,30 +386,53 @@ function sp(n) {
   if(n==='build') renderBuild();
   if(n==='quests') renderQuests();
   if(n==='top') fetchLeaderboard();
+  if(n==='shop') renderShop();
+  if(n==='friends') renderFriends();
   if(n==='stats') { document.getElementById('sgrid').innerHTML=[{l:L.stats.earned, v:fmt(S.totalTerra), g:true},{l:L.stats.cycles, v:S.cycles},{l:L.stats.built, v:S.built},{l:L.stats.pop, v:S.population}].map(s=>`<div class="sbox"><div class="sbl">${s.l}</div><div class="sbv${s.g?' g':''}">${s.v}</div></div>`).join(''); }
 }
 function togglePano() { const wrap=document.getElementById('panoWrap'), btn=document.getElementById('panoBtn'); wrap.classList.toggle('hidden'); btn.textContent=wrap.classList.contains('hidden')?'▼':'▲'; }
 function closePanel() { panelOpen=false; document.querySelector('.bottom').classList.remove('open'); document.querySelectorAll('.btab').forEach(t=>t.classList.remove('active')); S.sel=null; }
 
 setInterval(()=>{ seasonIdx=(seasonIdx+1)%4; season=SEASONS[seasonIdx]; notify(L.seasons[season]); }, 60000);
-function runCycle() { S.cycles++; const mult=S.boost&&Date.now()<S.boostEnd?2:1; S.grid.forEach(b=>{ if(!b) return; const bd=B[b.t]; Object.entries(bd.prod).forEach(([k,v])=>{ if(k!=='rare_seed') { const am=Math.floor(v*b.lv*mult); S[k]=(S[k]||0)+am; if(k==='terra') S.totalTerra+=am; } }); }); renderRes(); checkQuests(); }
+function runCycle() { S.cycles++; const mult=S.boost&&Date.now()<S.boostEnd?2:1; S.grid.forEach(b=>{ if(!b) return; const bd=B[b.t]; Object.entries(bd.prod).forEach(([k,v])=>{ if(k!=='rare_seed') { let am=Math.floor(v*b.lv*mult); if(S.autoCollect) am*=2; S[k]=(S[k]||0)+am; if(k==='terra') S.totalTerra+=am; } }); }); renderRes(); checkQuests(); }
 let cd=5; setInterval(()=>{ cd--; document.getElementById('ct').textContent=cd; if(cd<=0){ cd=5; runCycle(); } }, 1000);
 
-async function buyStars() {
-  unlockAudio(); sCoin(); if (!tg?.initData) { activateBoost(); return; }
-  try { const res = await fetch(`${API_URL}/api/create-invoice`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify({ productId: "boost" }) }); const data = await res.json(); if (data.link) { tg.openInvoice(data.link, (status) => { if (status === "paid") { notify("⭐ " + L.boostTitle); activateBoost(); } else notify("❌ " + status); }); } else notify("⚠ Error: " + (data.error || "unknown")); } catch(e) { notify("⚠ Network error"); }
+async function buyProduct(id) {
+  unlockAudio(); sCoin(); if (!tg?.initData) { applyReward(id); return; }
+  try { const res = await fetch(`${API_URL}/api/create-invoice`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify({ productId: id }) }); const data = await res.json(); if (data.link) { tg.openInvoice(data.link, (status) => { if (status === "paid") { applyReward(id); } else notify("❌ Скасовано"); }); } else notify("⚠ Помилка"); } catch(e) { notify("⚠ Мережа"); }
 }
-function activateBoost() { S.terra+=200; S.totalTerra+=200; S.boost=true; S.boostEnd=Date.now()+60000; notify('⭐ BOOST ×2 — 60s!'); setTimeout(()=>{S.boost=false;},60000); renderRes(); }
+function applyReward(id) {
+  if(id==='boost') { S.terra+=200; S.totalTerra+=200; S.boost=true; S.boostEnd=Date.now()+60000; setTimeout(()=>{S.boost=false;},60000); notify('⭐ Буст x2!'); }
+  else if(id==='chest') { S.terra+=5000; S.seeds+=100; notify('🎁 Сундук відкрито!'); }
+  else if(id==='auto') { S.autoCollect=true; notify('🚜 Авто-Фермер назавжди твій!'); }
+  renderRes(); save();
+}
+function renderShop() {
+  document.getElementById('panel-shop').innerHTML = `
+    <div class="cv" style="display:flex; justify-content:space-between; align-items:center; padding:12px; margin-bottom:8px;"><div><div class="cvt">⭐ Зоряний Буст (50⭐)</div><div style="font-size:10px;color:#a09060;">Дохід x2 на 60 секунд</div></div><button onclick="buyProduct('boost')" style="background:#d09018; color:#000; border:none; padding:8px 12px; border-radius:6px; font-family:'Russo One';">КУПИТИ</button></div>
+    <div class="cv" style="display:flex; justify-content:space-between; align-items:center; padding:12px; margin-bottom:8px;"><div><div class="cvt">🎁 Сундук (15⭐)</div><div style="font-size:10px;color:#a09060;">+5000💰 та +100🌱</div></div><button onclick="buyProduct('chest')" style="background:#d09018; color:#000; border:none; padding:8px 12px; border-radius:6px; font-family:'Russo One';">КУПИТИ</button></div>
+    <div class="cv" style="display:flex; justify-content:space-between; align-items:center; padding:12px; margin-bottom:8px;"><div><div class="cvt">🚜 Авто-Фермер (150⭐)</div><div style="font-size:10px;color:#a09060;">Всі доходи x2 назавжди</div></div><button onclick="buyProduct('auto')" style="background:#d09018; color:#000; border:none; padding:8px 12px; border-radius:6px; font-family:'Russo One';">КУПИТИ</button></div>
+  `;
+}
+function renderFriends() {
+  const uid = tg?.initDataUnsafe?.user?.id || "123";
+  const link = `https://t.me/KhutorEmpireBot?start=ref_${uid}`;
+  document.getElementById('panel-friends').innerHTML = `
+    <div class="cv">
+      <div class="cvt">🤝 Запроси друга</div>
+      <p style="font-size:11px; color:#d8c060; margin-bottom:10px; line-height:1.4;">Запроси друга і отримай 500💰!</p>
+      <input type="text" value="${link}" readonly style="width:100%; background:#111; color:#a0d040; border:1px solid #5a9a20; padding:8px; border-radius:5px; margin-bottom:10px; font-size:10px;">
+      <button onclick="copyRef('${link}')" style="width:100%; background:#5a9a20; color:#fff; padding:10px; border:none; border-radius:5px; font-family:'Russo One'; cursor:pointer;">СКОПІЮВАТИ ЛІНК</button>
+    </div>
+  `;
+}
+function copyRef(link) { navigator.clipboard.writeText(link).then(()=>notify('✅ Лінк скопійовано!')).catch(()=>notify('❌ Помилка')); }
 
-// WHEEL LOGIC
 let isSpinning = false;
 const WHEEL_PRIZES = [ { t: 'terra', v: 100, i: '💰' }, { t: 'seeds', v: 50, i: '🌱' }, { t: 'boost', v: 1, i: '⭐' }, { t: 'terra', v: 500, i: '💰' }, { t: 'food', v: 30, i: '🍞' }, { t: 'rare', v: 1, i: '🌟' }, { t: 'terra', v: 200, i: '💰' }, { t: 'seeds', v: 100, i: '🌱' } ];
 function openWheel() { document.getElementById('wheelModal').classList.add('open'); updateWheelState(); }
 function closeWheel() { document.getElementById('wheelModal').classList.remove('open'); }
-function updateWheelState() {
-  const btn = document.getElementById('spinBtn'); const now = Date.now(); const cooldown = 24 * 60 * 60 * 1000;
-  if (S.lastSpin && now - S.lastSpin < cooldown) { btn.disabled = true; const left = Math.ceil((cooldown - (now - S.lastSpin)) / 3600000); btn.textContent = `⏳ ${left} год.`; } else { btn.disabled = false; btn.textContent = 'КРУТИТИ!'; }
-}
+function updateWheelState() { const btn = document.getElementById('spinBtn'); const now = Date.now(); const cooldown = 24 * 60 * 60 * 1000; if (S.lastSpin && now - S.lastSpin < cooldown) { btn.disabled = true; const left = Math.ceil((cooldown - (now - S.lastSpin)) / 3600000); btn.textContent = `⏳ ${left} год.`; } else { btn.disabled = false; btn.textContent = 'КРУТИТИ!'; } }
 function spinWheel() {
   if (isSpinning) return; const now = Date.now(); const cooldown = 24 * 60 * 60 * 1000; if (S.lastSpin && now - S.lastSpin < cooldown) return;
   isSpinning = true; const btn = document.getElementById('spinBtn'); btn.disabled = true; btn.textContent = '...';
@@ -454,15 +440,14 @@ function spinWheel() {
   wheel.style.transform = `rotate(${finalDeg}deg)`; sMachine();
   setTimeout(() => {
     const prizeIndex = Math.floor(randomDeg / 45) % WHEEL_PRIZES.length; const prize = WHEEL_PRIZES[prizeIndex];
-    if (prize.t === 'boost') { activateBoost(); notify('🎉 ВИГРАВ БУСТ ×2!'); }
-    else if (prize.t === 'rare') { S.rareSeeds.push({id:'w'+Date.now(), n:'Fortune Seed', i:'🌟', r:'Легендарне', c:'#c8500c', cnt:1}); notify('🌟 НЕЙМОВІРНА УДАЧА! Рідкісне насіння!'); }
+    if (prize.t === 'boost') { applyReward('boost'); }
+    else if (prize.t === 'rare') { S.rareSeeds.push({id:'w'+Date.now(), n:'Fortune Seed', i:'🌟', r:'Легендарне', c:'#c8500c', cnt:1}); notify('🌟 Рідкісне насіння!'); }
     else { S[prize.t] = (S[prize.t] || 0) + prize.v; if (prize.t === 'terra') S.totalTerra += prize.v; notify(`🎉 ВИГРАВ ${prize.i}${prize.v}!`); }
     S.lastSpin = now; S.quests.q_spin = 1; renderRes(); sCoin(); isSpinning = false; updateWheelState(); checkQuests();
     setTimeout(() => { wheel.style.transition = 'none'; wheel.style.transform = `rotate(${randomDeg}deg)`; setTimeout(()=>wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.1, 1)', 50); }, 4000);
   }, 4200);
 }
 
-// OFFLINE & LEADERBOARD & QUESTS
 let offlineReward = 0;
 function checkOffline() {
   const now = Date.now(); const lastSeen = S.lastSeen || now; const diff = now - lastSeen;
@@ -470,6 +455,7 @@ function checkOffline() {
   if (timeToPay > 60000) {
     let incomePerTick = 0;
     S.grid.forEach(b => { if (b && B[b.t] && B[b.t].prod.terra) incomePerTick += B[b.t].prod.terra * b.lv; });
+    if (S.autoCollect) incomePerTick *= 2;
     const ticks = Math.floor(timeToPay / 5000);
     offlineReward = incomePerTick * ticks;
     if (offlineReward > 0) { document.getElementById('offlineAmount').textContent = fmt(offlineReward); document.getElementById('offlineModal').classList.add('open'); }
@@ -481,28 +467,21 @@ function claimOffline() {
 }
 
 async function fetchLeaderboard() {
-  const list = document.getElementById('lead-list');
-  list.innerHTML = '<p style="text-align:center;color:#a09060;">Завантаження...</p>';
+  const list = document.getElementById('lead-list'); list.innerHTML = '<p style="text-align:center;color:#a09060;">Завантаження...</p>';
   try {
-    const res = await fetch(`${API_URL}/api/top`);
-    const data = await res.json();
+    const res = await fetch(`${API_URL}/api/top`); const data = await res.json();
     if (data.top && data.top.length > 0) {
       list.innerHTML = data.top.map((p, i) => {
         const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
         const isMe = p.name === (tg?.initDataUnsafe?.user?.first_name || "Гравець");
         return `<div class="lead-row ${isMe?'me':''}"><div class="lead-rank">${rank}</div><div class="lead-name">${p.name}</div><div class="lead-score">${fmt(p.score)} 💰</div></div>`;
       }).join('');
-    } else { list.innerHTML = '<p style="text-align:center;color:#a09060;">Ще немає гравців у рейтингу.</p>'; }
-  } catch (e) { list.innerHTML = '<p style="text-align:center;color:#d06060;">Помилка завантаження.</p>'; }
+    } else { list.innerHTML = '<p style="text-align:center;color:#a09060;">Поки нікого немає.</p>'; }
+  } catch (e) { list.innerHTML = '<p style="text-align:center;color:#d06060;">Помилка.</p>'; }
 }
 
 const QUESTS = [ { id: 'q_build', title: 'Збудувати 2 будівлі', reward: 5, target: 2 }, { id: 'q_earn', title: 'Заробити 1000 Терри', reward: 10, target: 1000 }, { id: 'q_spin', title: 'Прокрутити колесо', reward: 15, target: 1 } ];
-function checkQuests() {
-  let changed = false;
-  if (S.built > (S.quests.q_build || 0)) { S.quests.q_build = S.built; changed = true; }
-  if (S.totalTerra > (S.quests.q_earn || 0)) { S.quests.q_earn = S.totalTerra; changed = true; }
-  if (changed && panelOpen && document.getElementById('panel-quests').style.display === 'block') renderQuests();
-}
+function checkQuests() { let changed = false; if (S.built > (S.quests.q_build || 0)) { S.quests.q_build = S.built; changed = true; } if (S.totalTerra > (S.quests.q_earn || 0)) { S.quests.q_earn = S.totalTerra; changed = true; } if (changed && panelOpen && document.getElementById('panel-quests').style.display === 'block') renderQuests(); }
 function renderQuests() {
   const container = document.getElementById('panel-quests'); if (!container) return;
   container.innerHTML = QUESTS.map(q => {
@@ -510,22 +489,12 @@ function renderQuests() {
     return `<div class="cv" style="display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:8px; border-color:${isDone&&!isClaimed?'#5a9a20':'rgba(200,160,50,.18)'}"><div><div style="font-family:'Russo One'; font-size:12px; color:#d8c060;">${q.title}</div><div style="font-size:10px; color:${isDone?'#80c020':'#a09060'}; margin-top:4px;">Прогрес: ${Math.min(progress, q.target)} / ${q.target}</div></div><div>${isClaimed ? '<span style="font-size:18px;">✅</span>' : `<button onclick="claimQuest('${q.id}')" ${isDone?'':'disabled'} style="background:${isDone?'#d09018':'#333'}; color:#000; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-family:'Russo One'; cursor:${isDone?'pointer':'default'}; box-shadow:${isDone?'0 0 10px #d09018':'none'};">⭐ ${q.reward}</button>`}</div></div>`;
   }).join('');
 }
-function claimQuest(qId) {
-  const q = QUESTS.find(x => x.id === qId); if (!q || S.quests.claimed.includes(qId)) return; if ((S.quests[qId] || 0) < q.target) return;
-  S.quests.claimed.push(qId); S.terra += q.reward * 100; S.totalTerra += q.reward * 100;
-  notify(`✅ Нагороду отримано: +${q.reward * 100}💰`); sCoin(); renderQuests(); renderRes(); save();
-}
-function checkReferral() {
-  if (!tg?.initDataUnsafe?.start_param) return;
-  const refCode = tg.initDataUnsafe.start_param;
-  if (refCode.startsWith('ref_') && refCode !== `ref_${tg.initDataUnsafe.user?.id}`) {
-    if (!S.refBonus) { S.terra += 500; S.totalTerra += 500; S.refBonus = true; notify("🎁 Бонус за запрошення: +500💰!"); save(); }
-  }
-}
+function claimQuest(qId) { const q = QUESTS.find(x => x.id === qId); if (!q || S.quests.claimed.includes(qId)) return; if ((S.quests[qId] || 0) < q.target) return; S.quests.claimed.push(qId); S.terra += q.reward * 100; S.totalTerra += q.reward * 100; notify(`✅ Нагорода: +${q.reward * 100}💰`); sCoin(); renderQuests(); renderRes(); save(); }
+function checkReferral() { if (!tg?.initDataUnsafe?.start_param) return; const refCode = tg.initDataUnsafe.start_param; if (refCode.startsWith('ref_') && refCode !== `ref_${tg.initDataUnsafe.user?.id}`) { if (!S.refBonus) { S.terra += 500; S.totalTerra += 500; S.refBonus = true; notify("🎁 Бонус: +500💰!"); save(); } } }
 
 async function save() {
   if (!tg?.initData) { try { localStorage.setItem('kh6', JSON.stringify(S)); } catch(e) {} return; }
-  try { const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx, lastSpin:S.lastSpin, lastSeen:Date.now(), quests:S.quests, refBonus:S.refBonus }; await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) }); } catch(e) {}
+  try { const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx, lastSpin:S.lastSpin, lastSeen:Date.now(), quests:S.quests, refBonus:S.refBonus, autoCollect:S.autoCollect }; await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) }); } catch(e) {}
 }
 async function load() {
   if (!tg?.initData) { try { const d=JSON.parse(localStorage.getItem('kh6')||'null'); if(d) Object.assign(S,d); } catch(e) {} return; }
