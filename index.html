@@ -44,11 +44,12 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 @keyframes spulse{0%,100%{box-shadow:0 0 20px rgba(240,180,30,.5);}50%{box-shadow:0 0 36px rgba(240,180,30,.9);}}
 .bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(calc(100% - 52px));bottom:64px;width:100%;max-width:430px;background:rgba(6,3,0,.99);border-top:2.5px solid rgba(160,120,30,.7);border-radius:16px 16px 0 0;display:flex;flex-direction:column;max-height:75vh;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom);transition:transform .32s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.6);padding-bottom:0;}
 .bottom.open{transform:translateX(-50%) translateY(0);}
-.btabs{display:flex;border-bottom:1px solid rgba(200,160,50,.2);position:relative;}
-.btab{flex:1;padding:8px 2px;text-align:center;font-size:9px;font-weight:700;color:rgba(200,160,50,.5);cursor:pointer;font-family:'Russo One',sans-serif;transition:color .2s;}
+.btabs{display:flex;border-bottom:1px solid rgba(200,160,50,.2);position:relative;overflow-x:auto;scrollbar-width:none;}
+.btabs::-webkit-scrollbar{display:none;}
+.btab{flex:1;padding:8px 2px;text-align:center;font-size:9px;font-weight:700;color:rgba(200,160,50,.5);cursor:pointer;font-family:'Russo One',sans-serif;transition:color .2s;min-width:65px;}
 .btab .bi{display:block;font-size:14px;margin-bottom:2px;}
 .btab.active{background:rgba(30,60,0,.8);color:#a0d040;border-bottom:2px solid #70b020;}
-.close-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(200,160,50,.5);cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.06);border-radius:8px;border:none;}
+.close-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(200,160,50,.5);cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.06);border-radius:8px;border:none;z-index:10;}
 .bc{overflow-y:auto;flex:1;padding:7px;}
 .bottom-spacer{height:64px;flex-shrink:0;}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
@@ -129,12 +130,14 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
       <button class="close-btn" onclick="closePanel()">✕</button>
       <div class="btab active" id="tab-build" onclick="sp('build')"><span class="bi">🏗️</span><span id="tab-t-build">Будувати</span></div>
       <div class="btab" id="tab-info" onclick="sp('info')"><span class="bi">📍</span><span id="tab-t-info">Будівля</span></div>
+      <div class="btab" id="tab-quests" onclick="sp('quests')"><span class="bi">🎯</span><span id="tab-t-quests">Квести</span></div>
       <div class="btab" id="tab-chain" onclick="sp('chain')"><span class="bi">⛓️</span><span id="tab-t-chain">Ланцюг</span></div>
       <div class="btab" id="tab-stats" onclick="sp('stats')"><span class="bi">📊</span><span id="tab-t-stats">Місто</span></div>
     </div>
     <div class="bc">
       <div id="panel-build"><div class="bgrid" id="bgrid"></div></div>
       <div id="panel-info" style="display:none"><div id="icontent"></div></div>
+      <div id="panel-quests" style="display:none"></div>
       <div id="panel-chain" style="display:none"></div>
       <div id="panel-stats" style="display:none"><div class="sgrid" id="sgrid"></div></div>
     </div>
@@ -173,7 +176,7 @@ let currentLang = localStorage.getItem('kh_lang') || 'ua';
 const TEXTS = {
   ua: {
     panoTitle: "🌿 ХУТІР RASTAMANIA", boostTitle: "ЗОРЯНИЙ БУСТ", boostDesc: "+200💰 · ×2 · 60с",
-    tabs: { build: "Будувати", info: "Будівля", chain: "Ланцюг", stats: "Місто" },
+    tabs: { build: "Будувати", info: "Будівля", quests: "Квести", chain: "Ланцюг", stats: "Місто" },
     notEnough: "⚠ Не вистачає: ", built: "✅ збудовано!", upgraded: "⬆ Апгрейд!",
     demolished: "🗑 Знесено +", maxLvl: "МАКС РІВЕНЬ", saveOk: "☁️ Збережено",
     selectTile: "Обери клітинку", seasons: { spring: "🌸 Весна", summer: "🌞 Літо", autumn: "🍂 Осінь", winter: "❄️ Зима" },
@@ -181,7 +184,7 @@ const TEXTS = {
   },
   ru: {
     panoTitle: "🌿 ХУТОР RASTAMANIA", boostTitle: "ЗВЕЗДНЫЙ БУСТ", boostDesc: "+200💰 · ×2 · 60с",
-    tabs: { build: "Строить", info: "Здание", chain: "Цепочка", stats: "Город" },
+    tabs: { build: "Строить", info: "Здание", quests: "Квесты", chain: "Цепочка", stats: "Город" },
     notEnough: "⚠ Не хватает: ", built: "✅ построено!", upgraded: "⬆ Апгрейд!",
     demolished: "🗑 Снесено +", maxLvl: "МАКС УРОВЕНЬ", saveOk: "☁️ Сохранено",
     selectTile: "Выбери клетку", seasons: { spring: "🌸 Весна", summer: "🌞 Лето", autumn: "🍂 Осень", winter: "❄️ Зима" },
@@ -189,7 +192,7 @@ const TEXTS = {
   },
   en: {
     panoTitle: "🌿 RASTAMANIA FARM", boostTitle: "STAR BOOST", boostDesc: "+200💰 · ×2 · 60s",
-    tabs: { build: "Build", info: "Building", chain: "Chain", stats: "City" },
+    tabs: { build: "Build", info: "Building", quests: "Quests", chain: "Chain", stats: "City" },
     notEnough: "⚠ Not enough: ", built: "✅ built!", upgraded: "⬆ Upgraded!",
     demolished: "🗑 Demolished +", maxLvl: "MAX LEVEL", saveOk: "☁️ Saved",
     selectTile: "Select a tile", seasons: { spring: "🌸 Spring", summer: "🌞 Summer", autumn: "🍂 Autumn", winter: "❄️ Winter" },
@@ -215,6 +218,7 @@ function updateUI() {
   document.getElementById('boostDesc').textContent = l.boostDesc;
   document.getElementById('tab-t-build').textContent = l.tabs.build;
   document.getElementById('tab-t-info').textContent = l.tabs.info;
+  document.getElementById('tab-t-quests').textContent = l.tabs.quests;
   document.getElementById('tab-t-chain').textContent = l.tabs.chain;
   document.getElementById('tab-t-stats').textContent = l.tabs.stats;
   if(!S.sel) document.getElementById('icontent').innerHTML = `<p style="text-align:center;color:rgba(200,160,50,.35);padding:18px 0;font-style:italic">${l.selectTile}</p>`;
@@ -251,12 +255,7 @@ function sMachine() { [0, 0.1, 0.2, 0.35].forEach((d, i) => { pOsc(80 + i * 20, 
 function sCoin() { [1047, 1319, 1568].forEach((f, i) => pOsc(f, getA().currentTime + i * 0.06, 'sine', 0.15, 0.1)); }
 function sBuild() { [261, 330, 392, 523].forEach((f, i) => pOsc(f, getA().currentTime + i * 0.09, 'triangle', 0.22, 0.12)); }
 function sWind() { try { const a = getA(), t = a.currentTime, s = a.createBufferSource(); s.buffer = mkNoise(1); const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500; const g = a.createGain(); s.connect(f); f.connect(g); g.connect(mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + 1); s.start(t); s.stop(t + 1); } catch (e) {} }
-
-function soundTile(type) {
-  if (!audioReady) return;
-  const map = { hemp_farm: sWind, sunflower: () => { sWind(); setTimeout(sBird, 200); }, corn_field: sWind, beehive: sBees, press: sMachine, mill: sMachine, market: sCoin, solar: sMachine, house: () => pOsc(300, getA().currentTime, 'sine', 0.4, 0.15) };
-  (map[type] || sWind)();
-}
+function soundTile(type) { if (!audioReady) return; const map = { hemp_farm: sWind, sunflower: () => { sWind(); setTimeout(sBird, 200); }, corn_field: sWind, beehive: sBees, press: sMachine, mill: sMachine, market: sCoin, solar: sMachine, house: () => pOsc(300, getA().currentTime, 'sine', 0.4, 0.15) }; (map[type] || sWind)(); }
 
 function resize() { const w = Math.min(window.innerWidth, 430); const hexH = Math.round(ROWS * 44 * 1.5 + 44 * 2); game.width = w; game.height = hexH; const pw = Math.min(w - 20, 390); pano.width = pw; pano.height = 90; }
 resize(); window.addEventListener('resize', resize);
@@ -299,7 +298,7 @@ const RD = [{k:'terra',i:'💰'},{k:'seeds',i:'🌱'},{k:'fiber',i:'🧵'},{k:'o
 const SEASONS = ['spring','summer','autumn','winter'];
 
 let seasonIdx = 1, season = 'summer', weather = 'clear';
-let S = { terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0, totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0, lastSpin: 0, grid: Array(20).fill(null), sel: null, rareSeeds: [] };
+let S = { terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0, totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0, lastSpin: 0, grid: Array(20).fill(null), sel: null, rareSeeds: [], quests: { q_build: 0, q_earn: 0, q_spin: 0, claimed: [] }, refBonus: false };
 
 let frame = 0, beeAngle = 0;
 const clouds = [{x:60,sp:.22},{x:250,sp:.15},{x:140,sp:.1}];
@@ -398,8 +397,7 @@ function renderRes() { document.getElementById('rbar').innerHTML=RD.map(r=>`<div
 function renderBuild() {
   const lv=ulv(); document.getElementById('bgrid').innerHTML=Object.entries(B).map(([k,bd])=>{
     const lk=bd.ul>lv, ok=!lk&&canAfford(bd.cost);
-    const name = bd.n[currentLang] || bd.n.ua;
-    const desc = bd.desc[currentLang] || bd.desc.ua;
+    const name = bd.n[currentLang] || bd.n.ua; const desc = bd.desc[currentLang] || bd.desc.ua;
     return `<div class="bcard ${lk?'no':ok?'ok':''}" onclick="doBuild('${k}')"><div class="bct"><span class="bci">${bd.i}</span><span class="bcn">${name}</span></div><div class="bcd">${desc}</div><div class="bcco">${fmtC(bd.cost)}${lk?` 🔒Lv${bd.ul}`:''}</div></div>`;
   }).join('');
 }
@@ -408,7 +406,7 @@ function doBuild(k) {
   if(S.sel===null||S.grid[S.sel]) return; const bd=B[k]; if(!canAfford(bd.cost)) { notify(L.notEnough+fmtC(bd.cost)); return; }
   Object.entries(bd.cost).forEach(([r,v])=>S[r]-=v); S.grid[S.sel]={t:k,lv:1}; S.built++; sBuild();
   if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-  notify('✅ '+(bd.n[currentLang]||bd.n.ua)+' '+L.built); S.sel=null; renderBuild(); renderRes();
+  notify('✅ '+(bd.n[currentLang]||bd.n.ua)+' '+L.built); S.sel=null; renderBuild(); renderRes(); checkQuests();
 }
 
 function renderInfo(i) {
@@ -420,20 +418,21 @@ function renderInfo(i) {
 function doUpg(i) { const b=S.grid[i]; const uc=Math.floor(50*Math.pow(2,b.lv-1)); if(b.lv>=3){notify(L.maxLvl);return;} if(S.terra<uc){notify('⚠ 💰'+uc);return;} S.terra-=uc; b.lv++; sBuild(); notify(L.upgraded+' Lv'+b.lv); renderRes(); renderInfo(i); }
 function doDel(i) { const ref=Math.floor(B[S.grid[i].t].cost.terra*.5); S.terra+=ref; S.grid[i]=null; S.sel=null; notify(L.demolished+'💰'+ref); renderRes(); sp('build'); renderBuild(); }
 
-const PANELS=['build','info','chain','stats'];
+const PANELS=['build','info','quests','chain','stats'];
 function sp(n) {
   const bottom=document.querySelector('.bottom');
   if(panelOpen && PANELS.indexOf(n)>=0) { const activePanel=PANELS[Array.from(document.querySelectorAll('.btab')).findIndex(t=>t.classList.contains('active'))]; if(activePanel===n) { closePanel(); return; } }
   panelOpen=true; bottom.classList.add('open'); document.querySelectorAll('.btab').forEach((t,i)=>t.classList.toggle('active',PANELS[i]===n));
   PANELS.forEach(p=>document.getElementById('panel-'+p).style.display=p===n?'':' none');
   if(n==='build') renderBuild();
+  if(n==='quests') renderQuests();
   if(n==='stats') { document.getElementById('sgrid').innerHTML=[{l:L.stats.earned, v:fmt(S.totalTerra), g:true},{l:L.stats.cycles, v:S.cycles},{l:L.stats.built, v:S.built},{l:L.stats.pop, v:S.population}].map(s=>`<div class="sbox"><div class="sbl">${s.l}</div><div class="sbv${s.g?' g':''}">${s.v}</div></div>`).join(''); }
 }
 function togglePano() { const wrap=document.getElementById('panoWrap'), btn=document.getElementById('panoBtn'); wrap.classList.toggle('hidden'); btn.textContent=wrap.classList.contains('hidden')?'▼':'▲'; }
 function closePanel() { panelOpen=false; document.querySelector('.bottom').classList.remove('open'); document.querySelectorAll('.btab').forEach(t=>t.classList.remove('active')); S.sel=null; }
 
 setInterval(()=>{ seasonIdx=(seasonIdx+1)%4; season=SEASONS[seasonIdx]; notify(L.seasons[season]); }, 60000);
-function runCycle() { S.cycles++; const mult=S.boost&&Date.now()<S.boostEnd?2:1; S.grid.forEach(b=>{ if(!b) return; const bd=B[b.t]; Object.entries(bd.prod).forEach(([k,v])=>{ if(k!=='rare_seed') { const am=Math.floor(v*b.lv*mult); S[k]=(S[k]||0)+am; if(k==='terra') S.totalTerra+=am; } }); }); renderRes(); }
+function runCycle() { S.cycles++; const mult=S.boost&&Date.now()<S.boostEnd?2:1; S.grid.forEach(b=>{ if(!b) return; const bd=B[b.t]; Object.entries(bd.prod).forEach(([k,v])=>{ if(k!=='rare_seed') { const am=Math.floor(v*b.lv*mult); S[k]=(S[k]||0)+am; if(k==='terra') S.totalTerra+=am; } }); }); renderRes(); checkQuests(); }
 let cd=5; setInterval(()=>{ cd--; document.getElementById('ct').textContent=cd; if(cd<=0){ cd=5; runCycle(); } }, 1000);
 
 async function buyStars() {
@@ -461,14 +460,42 @@ function spinWheel() {
     if (prize.t === 'boost') { activateBoost(); notify('🎉 ВИГРАВ БУСТ ×2!'); }
     else if (prize.t === 'rare') { S.rareSeeds.push({id:'w'+Date.now(), n:'Fortune Seed', i:'🌟', r:'Легендарне', c:'#c8500c', cnt:1}); notify('🌟 НЕЙМОВІРНА УДАЧА! Рідкісне насіння!'); }
     else { S[prize.t] = (S[prize.t] || 0) + prize.v; if (prize.t === 'terra') S.totalTerra += prize.v; notify(`🎉 ВИГРАВ ${prize.i}${prize.v}!`); }
-    S.lastSpin = now; renderRes(); sCoin(); isSpinning = false; updateWheelState();
+    S.lastSpin = now; S.quests.q_spin = 1; renderRes(); sCoin(); isSpinning = false; updateWheelState(); checkQuests();
     setTimeout(() => { wheel.style.transition = 'none'; wheel.style.transform = `rotate(${randomDeg}deg)`; setTimeout(()=>wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.1, 1)', 50); }, 4000);
   }, 4200);
 }
 
+// QUESTS & REFERRAL
+const QUESTS = [ { id: 'q_build', title: 'Збудувати 2 будівлі', reward: 5, target: 2 }, { id: 'q_earn', title: 'Заробити 1000 Терри', reward: 10, target: 1000 }, { id: 'q_spin', title: 'Прокрутити колесо', reward: 15, target: 1 } ];
+function checkQuests() {
+  let changed = false;
+  if (S.built > (S.quests.q_build || 0)) { S.quests.q_build = S.built; changed = true; }
+  if (S.totalTerra > (S.quests.q_earn || 0)) { S.quests.q_earn = S.totalTerra; changed = true; }
+  if (changed && panelOpen && document.getElementById('panel-quests').style.display === 'block') renderQuests();
+}
+function renderQuests() {
+  const container = document.getElementById('panel-quests'); if (!container) return;
+  container.innerHTML = QUESTS.map(q => {
+    const progress = S.quests[q.id] || 0; const isDone = progress >= q.target; const isClaimed = S.quests.claimed.includes(q.id);
+    return `<div class="cv" style="display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:8px; border-color:${isDone&&!isClaimed?'#5a9a20':'rgba(200,160,50,.18)'}"><div><div style="font-family:'Russo One'; font-size:12px; color:#d8c060;">${q.title}</div><div style="font-size:10px; color:${isDone?'#80c020':'#a09060'}; margin-top:4px;">Прогрес: ${Math.min(progress, q.target)} / ${q.target}</div></div><div>${isClaimed ? '<span style="font-size:18px;">✅</span>' : `<button onclick="claimQuest('${q.id}')" ${isDone?'':'disabled'} style="background:${isDone?'#d09018':'#333'}; color:#000; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; font-family:'Russo One'; cursor:${isDone?'pointer':'default'}; box-shadow:${isDone?'0 0 10px #d09018':'none'};">⭐ ${q.reward}</button>`}</div></div>`;
+  }).join('');
+}
+function claimQuest(qId) {
+  const q = QUESTS.find(x => x.id === qId); if (!q || S.quests.claimed.includes(qId)) return; if ((S.quests[qId] || 0) < q.target) return;
+  S.quests.claimed.push(qId); S.terra += q.reward * 100; S.totalTerra += q.reward * 100;
+  notify(`✅ Нагороду отримано: +${q.reward * 100}💰`); sCoin(); renderQuests(); renderRes(); save();
+}
+function checkReferral() {
+  if (!tg?.initDataUnsafe?.start_param) return;
+  const refCode = tg.initDataUnsafe.start_param;
+  if (refCode.startsWith('ref_') && refCode !== `ref_${tg.initDataUnsafe.user?.id}`) {
+    if (!S.refBonus) { S.terra += 500; S.totalTerra += 500; S.refBonus = true; notify("🎁 Бонус за запрошення: +500💰!"); save(); }
+  }
+}
+
 async function save() {
   if (!tg?.initData) { try { localStorage.setItem('kh6', JSON.stringify(S)); } catch(e) {} return; }
-  try { const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx, lastSpin:S.lastSpin }; await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) }); } catch(e) {}
+  try { const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx, lastSpin:S.lastSpin, quests:S.quests, refBonus:S.refBonus }; await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) }); } catch(e) {}
 }
 async function load() {
   if (!tg?.initData) { try { const d=JSON.parse(localStorage.getItem('kh6')||'null'); if(d) Object.assign(S,d); } catch(e) {} return; }
@@ -479,7 +506,7 @@ window.addEventListener('load', ()=>resize());
 document.addEventListener('touchstart', unlockAudio, {once:true});
 document.addEventListener('click', unlockAudio, {once:true});
 
-load().then(() => { updateUI(); renderRes(); renderBuild(); loop(); setInterval(save, 15000); });
+load().then(() => { updateUI(); checkReferral(); renderRes(); renderBuild(); loop(); setInterval(save, 15000); });
 </script>
 </body>
 </html>
