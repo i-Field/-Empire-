@@ -44,12 +44,12 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 @keyframes spulse{0%,100%{box-shadow:0 0 20px rgba(240,180,30,.5);}50%{box-shadow:0 0 36px rgba(240,180,30,.9);}}
 .bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(calc(100% - 52px));bottom:64px;width:100%;max-width:430px;background:rgba(6,3,0,.99);border-top:2.5px solid rgba(160,120,30,.7);border-radius:16px 16px 0 0;display:flex;flex-direction:column;max-height:75vh;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom);transition:transform .32s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.6);padding-bottom:0;}
 .bottom.open{transform:translateX(-50%) translateY(0);}
-.btabs{display:flex;border-bottom:1px solid rgba(200,160,50,.2);position:relative;overflow-x:auto;scrollbar-width:none;}
+.btabs{display:flex;border-bottom:1px solid rgba(200,160,50,.2);position:relative;overflow-x:auto;scrollbar-width:none;padding-right:35px;}
 .btabs::-webkit-scrollbar{display:none;}
-.btab{flex:1;padding:8px 2px;text-align:center;font-size:9px;font-weight:700;color:rgba(200,160,50,.5);cursor:pointer;font-family:'Russo One',sans-serif;transition:color .2s;min-width:60px;}
+.btab{flex:1;padding:8px 2px;text-align:center;font-size:9px;font-weight:700;color:rgba(200,160,50,.5);cursor:pointer;font-family:'Russo One',sans-serif;transition:color .2s;min-width:55px;}
 .btab .bi{display:block;font-size:14px;margin-bottom:2px;}
 .btab.active{background:rgba(30,60,0,.8);color:#a0d040;border-bottom:2px solid #70b020;}
-.close-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px;color:rgba(200,160,50,.5);cursor:pointer;padding:4px 8px;background:rgba(255,255,255,.06);border-radius:8px;border:none;z-index:10;}
+.close-btn{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:16px;color:rgba(200,160,50,.5);cursor:pointer;padding:4px 8px;background:rgba(20,10,0,.9);border-radius:8px;border:1px solid rgba(200,160,50,.2);z-index:10;}
 .bc{overflow-y:auto;flex:1;padding:7px;}
 .bottom-spacer{height:64px;flex-shrink:0;}
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
@@ -170,9 +170,25 @@ body{display:flex;flex-direction:column;font-family:'PT Serif',serif;user-select
 const API_URL = "https://empire.qx420.workers.dev";
 const COLS = 5, ROWS = 4, HEX_R = 44, HEX_W = HEX_R * Math.sqrt(3), DAY = 90000;
 let panelOpen = false, currentLang = localStorage.getItem('kh_lang') || 'ua';
+if (!['ua','ru','en'].includes(currentLang)) currentLang = 'ua';
+
 const pano = document.getElementById('panoCanvas'), pc = pano.getContext('2d');
 const game = document.getElementById('gameCanvas'), gc = game.getContext('2d');
 
+// ═══════════ WEATHER & FX OBJECTS (З ПЕРШОЇ ВЕРСІЇ) ═══════════
+let weather = 'clear';
+const WEATHERS = ['clear','clear','clear','rain','fog','clear'];
+setInterval(()=>{ weather = WEATHERS[Math.floor(Math.random()*WEATHERS.length)]; }, 25000);
+
+const fogBlobs = Array.from({length:6}, ()=>({ x:Math.random()*450, y:160+Math.random()*220, w:90+Math.random()*160, h:30+Math.random()*40, sp:.18+Math.random()*.22, op:.12+Math.random()*.18 }));
+const raindrops = Array.from({length:80}, ()=>({ x:Math.random()*450, y:Math.random()*380, sp:3.5+Math.random()*3, len:5+Math.random()*9 }));
+const fireflies = Array.from({length:22}, ()=>({ x:Math.random()*400, y:50+Math.random()*280, ph:Math.random()*Math.PI*2, spx:(Math.random()-.5)*.4, spy:(Math.random()-.5)*.25 }));
+const drones = [{x:40,y:28,tx:200,ty:22,sp:.7,led:0},{x:350,y:45,tx:100,ty:30,sp:.5,led:Math.PI}];
+const clouds = [{x:60,sp:.22},{x:250,sp:.15},{x:140,sp:.1}];
+const birds = [{x:-50,y:26,sp:.9,w:0},{x:-160,y:18,sp:.55,w:2},{x:-300,y:34,sp:1.1,w:4}];
+const stars = Array.from({length:40}, ()=>({x:Math.random()*430,y:Math.random()*55,r:.5+Math.random(),ph:Math.random()*Math.PI*2}));
+
+// ═══════════ TRANSLATIONS ═══════════
 const TEXTS = {
   ua: { panoTitle:"🌿 ХУТІР RASTAMANIA", boostTitle:"МАГАЗИН", boostDesc:"Бонуси за Зірки", tabs:{build:"Будувати",info:"Будівля",quests:"Квести",top:"ТОП-10",friends:"Друзі",shop:"Магазин",stats:"Місто"}, notEnough:"⚠ Не вистачає: ", built:"✅ збудовано!", upgraded:"⬆ Апгрейд!", demolished:"🗑 Знесено +", maxLvl:"МАКС РІВЕНЬ", saveOk:"☁️ Збережено", selectTile:"Обери клітинку", seasons:{spring:"🌸 Весна",summer:"🌞 Літо",autumn:"🍂 Осінь",winter:"❄️ Зима"}, stats:{earned:"💰 Зароблено",cycles:"🔄 Циклів",built:"🏗 Будівель",pop:"👥 Населення"} },
   ru: { panoTitle:"🌿 ХУТОР RASTAMANIA", boostTitle:"МАГАЗИН", boostDesc:"Бонусы за Звезды", tabs:{build:"Строить",info:"Здание",quests:"Квесты",top:"ТОП-10",friends:"Друзья",shop:"Магазин",stats:"Город"}, notEnough:"⚠ Не хватает: ", built:"✅ построено!", upgraded:"⬆ Апгрейд!", demolished:"🗑 Снесено +", maxLvl:"МАКС УРОВЕНЬ", saveOk:"☁️ Сохранено", selectTile:"Выбери клетку", seasons:{spring:"🌸 Весна",summer:"🌞 Лето",autumn:"🍂 Осень",winter:"❄️ Зима"}, stats:{earned:"💰 Заработано",cycles:"🔄 Циклов",built:"🏗 Зданий",pop:"👥 Население"} },
@@ -201,6 +217,7 @@ function updateUI() {
   if(!S.sel) document.getElementById('icontent').innerHTML = `<p style="text-align:center;color:rgba(200,160,50,.35);padding:18px 0;font-style:italic">${l.selectTile}</p>`;
 }
 
+// ═══════════ AUDIO ENGINE ═══════════
 let actx = null, mGain = null, musicOn = true, musicPlaying = false, mTimer = null, audioReady = false;
 function getA() { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (!mGain) { mGain = actx.createGain(); mGain.gain.value = 0.15; mGain.connect(actx.destination); } return actx; }
 function unlockAudio() { if (audioReady) return; audioReady = true; try { getA().resume(); if (musicOn) startMusic(); } catch (e) {} }
@@ -220,6 +237,7 @@ function sBuild() { [261, 330, 392, 523].forEach((f, i) => pOsc(f, getA().curren
 function sWind() { try { const a = getA(), t = a.currentTime, s = a.createBufferSource(); s.buffer = mkNoise(1); const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500; const g = a.createGain(); s.connect(f); f.connect(g); g.connect(mGain); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + 1); s.start(t); s.stop(t + 1); } catch (e) {} }
 function soundTile(type) { if (!audioReady) return; const map = { hemp_farm: sWind, sunflower: () => { sWind(); setTimeout(sBird, 200); }, corn_field: sWind, beehive: sBees, press: sMachine, mill: sMachine, market: sCoin, solar: sMachine, house: () => pOsc(300, getA().currentTime, 'sine', 0.4, 0.15) }; (map[type] || sWind)(); }
 
+// ═══════════ HELPERS ═══════════
 function resize() { const w = Math.min(window.innerWidth, 430); const hexH = Math.round(ROWS * 44 * 1.5 + 44 * 2); game.width = w; game.height = hexH; const pw = Math.min(w - 20, 390); pano.width = pw; pano.height = 90; }
 resize(); window.addEventListener('resize', resize);
 function hexCenter(col, row) { const offX = (game.width - (COLS * HEX_W + HEX_W * 0.5)) / 2; const offY = HEX_R; const x = offX + col * HEX_W + (row % 2 === 1 ? HEX_W / 2 : 0) + HEX_W / 2; const y = offY + row * HEX_R * 1.5 + HEX_R; return { x, y }; }
@@ -233,6 +251,7 @@ function nf() { const t = gt(); if (t < 0.15 || t > 0.85) return 1; if (t < 0.25
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.disableVerticalSwipes?.(); }
 
+// ═══════════ GAME DATA & STATE ═══════════
 const B = {
   hemp_farm: {i:'🌿', cost:{terra:10}, prod:{seeds:3}, cons:{}, cy:'+3🌱', ul:0, n:{ua:'Конопляна ферма', ru:'Конопляная ферма', en:'Hemp Farm'}, desc:{ua:'Технічна конопля.', ru:'Техническая конопля.', en:'Industrial hemp.'}},
   sunflower: {i:'🌻', cost:{terra:20}, prod:{oil:1,food:2}, cons:{}, cy:'+1🫗+2🍞', ul:0, n:{ua:'Соняшникове поле', ru:'Подсолнечное поле', en:'Sunflower Field'}, desc:{ua:'Олія та їжа.', ru:'Масло и еда.', en:'Oil and food.'}},
@@ -259,15 +278,11 @@ const RICONS = {terra:'💰', seeds:'🌱', fiber:'🧵', oil:'🫗', food:'🍞
 const RD = [{k:'terra',i:'💰'},{k:'seeds',i:'🌱'},{k:'fiber',i:'🧵'},{k:'oil',i:'🫗'},{k:'food',i:'🍞'},{k:'population',i:'👥'},{k:'energy',i:'⚡'}];
 const SEASONS = ['spring','summer','autumn','winter'];
 
-let seasonIdx = 1, season = 'summer', weather = 'clear';
+let seasonIdx = 1, season = 'summer';
 let S = { terra: 50, seeds: 20, fiber: 0, oil: 0, food: 8, population: 2, energy: 0, medicine_base: 0, totalTerra: 50, cycles: 0, built: 0, boost: false, boostEnd: 0, lastSpin: 0, lastSeen: 0, autoCollect: false, grid: Array(20).fill(null), sel: null, rareSeeds: [], quests: { q_build: 0, q_earn: 0, q_spin: 0, claimed: [] }, refBonus: false };
 let frame = 0, beeAngle = 0;
-const clouds = [{x:60,sp:.22},{x:250,sp:.15},{x:140,sp:.1}];
-const birds = [{x:-50,y:26,sp:.9,w:0},{x:-160,y:18,sp:.55,w:2},{x:-300,y:34,sp:1.1,w:4}];
-const stars = Array.from({length:40},()=>({x:Math.random()*430,y:Math.random()*55,r:.5+Math.random(),ph:Math.random()*Math.PI*2}));
-const fireflies = Array.from({length:18},()=>({x:Math.random()*400,y:50+Math.random()*270,ph:Math.random()*Math.PI*2,spx:(Math.random()-.5)*.4,spy:(Math.random()-.5)*.25}));
-const drones = [{x:40,y:28,tx:200,ty:22,sp:.7,led:0},{x:350,y:45,tx:100,ty:30,sp:.5,led:Math.PI}];
 
+// ═══════════ DRAWING FUNCTIONS ═══════════
 function canAfford(c) { return Object.entries(c).every(([k,v]) => (S[k] || 0) >= v); }
 function ulv() { return Math.floor(S.built / 2); }
 function fmtC(c) { return Object.entries(c).map(([k,v]) => `${RICONS[k]||k}${v}`).join(' '); }
@@ -293,6 +308,7 @@ function drawGreenhouse(ctx,x,y,tw,f) { gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const
 function drawEmpty(ctx,x,y,tw,f) { gnd(ctx,x,y,tw,tw,sgnd2(),sgnd()); const cx2=x+tw/2,cy2=y+tw/2; ctx.strokeStyle=season==='winter'?'#708090':'#4a9a18'; ctx.lineWidth=1.8; [[.18,.62],[.45,.38],[.78,.68]].forEach(([rx,ry])=>{ const gx=x+tw*rx,gy=y+tw*ry; ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx-1,gy-7); ctx.moveTo(gx,gy); ctx.lineTo(gx+2,gy-6); ctx.stroke(); }); const pulse=Math.sin(f*.04)*.15+.25; ctx.strokeStyle=`rgba(120,200,80,${pulse})`; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx2-8,cy2); ctx.lineTo(cx2+8,cy2); ctx.moveTo(cx2,cy2-8); ctx.lineTo(cx2,cy2+8); ctx.stroke(); }
 function drawDrone(ctx,d) { const dx=d.tx-d.x,dy=d.ty-d.y,dist=Math.sqrt(dx*dx+dy*dy); if(dist<8){ d.tx=Math.random()*game.width; d.ty=20+Math.random()*50; } d.x+=dx/dist*d.sp; d.y+=dy/dist*d.sp; d.led+=.12; const bob=Math.sin(frame*.09)*3,angle=Math.atan2(dy,dx); ctx.save(); ctx.translate(d.x,d.y+bob); ctx.rotate(angle-Math.PI/2); ctx.fillStyle='rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(2,4,14,5,0,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#404040'; ctx.beginPath(); ctx.ellipse(0,0,10,7,0,0,Math.PI*2); ctx.fill(); [[-.7,-.65],[.7,-.65],[-.7,.65],[.7,.65]].forEach(([ax,ay])=>{ ctx.fillStyle='#444'; ctx.beginPath(); ctx.arc(ax*18,ay*10,4,0,Math.PI*2); ctx.fill(); }); ctx.restore(); }
 
+// ═══════════ TILE RENDER ═══════════
 function drawTile(idx,sunX) {
   const col=idx%COLS,row=Math.floor(idx/COLS); const {x:cx,y:cy}=hexCenter(col,row);
   const r=HEX_R-1; const TW2=r*2; const x=cx-r,y=cy-r;
@@ -344,17 +360,25 @@ function drawEffects() {
   const night=nf(); if(night>.05){ gc.fillStyle=`rgba(5,5,25,${night*.6})`; gc.fillRect(0,0,game.width,game.height); }
   if(night>.25) fireflies.forEach(ff=>{ ff.x+=ff.spx+Math.sin(frame*.012+ff.ph)*.35; ff.y+=ff.spy+Math.cos(frame*.014+ff.ph)*.22; if(ff.x<0)ff.x=game.width; if(ff.x>game.width)ff.x=0; if(ff.y<0)ff.y=game.height; if(ff.y>game.height)ff.y=0; const bl=Math.sin(frame*.055+ff.ph*3)*.5+.5,al=bl*night*.85; gc.fillStyle=`rgba(230,255,150,${al})`; gc.beginPath(); gc.arc(ff.x,ff.y,1.5,0,Math.PI*2); gc.fill(); });
   drones.forEach(d=>drawDrone(gc,d));
+  
+  // WEATHER EFFECTS (RAIN & FOG)
+  if(weather==='rain'){
+    gc.strokeStyle='rgba(130,180,255,.38)'; gc.lineWidth=1;
+    raindrops.forEach(d=>{ d.y+=d.sp; d.x-=d.sp*.2; if(d.y>game.height){d.y=-15; d.x=Math.random()*(game.width+40);} gc.beginPath(); gc.moveTo(d.x,d.y); gc.lineTo(d.x-2,d.y+d.len); gc.stroke(); });
+  }
+  if(weather==='fog'){
+    fogBlobs.forEach(fb=>{ fb.x+=fb.sp; if(fb.x>game.width+200)fb.x=-200; const gr=gc.createRadialGradient(fb.x,fb.y,0,fb.x,fb.y,fb.w*.5); gr.addColorStop(0,`rgba(220,230,210,${fb.op})`); gr.addColorStop(1,'rgba(200,215,190,0)'); gc.fillStyle=gr; gc.beginPath(); gc.ellipse(fb.x,fb.y,fb.w*.5,fb.h*.5,0,0,Math.PI*2); gc.fill(); });
+  }
 }
 
 function loop() { frame++; beeAngle+=.028; try { const sunX=drawPano(); const earthGrad=gc.createLinearGradient(0,0,0,game.height); if(nf()>.5){earthGrad.addColorStop(0,'#0a1a05');earthGrad.addColorStop(1,'#050d02');} else if(season==='winter'){earthGrad.addColorStop(0,'#2a3a4a');earthGrad.addColorStop(1,'#1a2a3a');} else if(season==='autumn'){earthGrad.addColorStop(0,'#3a2a0a');earthGrad.addColorStop(1,'#2a1a05');} else {earthGrad.addColorStop(0,'#2a5a12');earthGrad.addColorStop(1,'#1a3a08');} gc.fillStyle=earthGrad; gc.fillRect(0,0,game.width,game.height); for(let i=0;i<20;i++) drawTile(i,sunX); drawEffects(); } catch(e) { console.error(e); } requestAnimationFrame(loop); }
 
+// ═══════════ UI LOGIC ═══════════
 function getTile(cx2,cy2) { const rect=game.getBoundingClientRect(); const sx=game.width/rect.width,sy=game.height/rect.height; const px=(cx2-rect.left)*sx,py=(cy2-rect.top)*sy; return pixelToHex(px,py); }
 game.addEventListener('touchstart',e=>{ e.preventDefault(); unlockAudio(); if(panelOpen){closePanel();return;} const i=getTile(e.touches[0].clientX,e.touches[0].clientY); if(i>=0) tapTile(i); },{passive:false});
 game.addEventListener('click',e=>{ unlockAudio(); const i=getTile(e.clientX,e.clientY); if(i>=0) tapTile(i); });
-
 function tapTile(i) { soundTile(S.grid[i] ? S.grid[i].t : null); if(S.grid[i]) { sp('info'); renderInfo(i); } else { sp('build'); renderBuild(); } S.sel=i; }
 function renderRes() { document.getElementById('rbar').innerHTML=RD.map(r=>`<div class="rc"><span class="ri">${r.i}</span><span class="rv">${fmt(S[r.k]||0)}</span></div>`).join(''); }
-
 function renderBuild() {
   const lv=ulv(); document.getElementById('bgrid').innerHTML=Object.entries(B).map(([k,bd])=>{
     const lk=bd.ul>lv, ok=!lk&&canAfford(bd.cost);
@@ -362,20 +386,17 @@ function renderBuild() {
     return `<div class="bcard ${lk?'no':ok?'ok':''}" onclick="doBuild('${k}')"><div class="bct"><span class="bci">${bd.i}</span><span class="bcn">${name}</span></div><div class="bcd">${desc}</div><div class="bcco">${fmtC(bd.cost)}${lk?` 🔒Lv${bd.ul}`:''}</div></div>`;
   }).join('');
 }
-
 function doBuild(k) {
   if(S.sel===null||S.grid[S.sel]) return; const bd=B[k]; if(!canAfford(bd.cost)) { notify(L.notEnough+fmtC(bd.cost)); return; }
   Object.entries(bd.cost).forEach(([r,v])=>S[r]-=v); S.grid[S.sel]={t:k,lv:1}; S.built++; sBuild();
   if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
   notify('✅ '+(bd.n[currentLang]||bd.n.ua)+' '+L.built); S.sel=null; renderBuild(); renderRes(); checkQuests();
 }
-
 function renderInfo(i) {
   const b=S.grid[i]; if(!b) return; const bd=B[b.t]; const uc=Math.floor(50*Math.pow(2,b.lv-1));
   const name = bd.n[currentLang] || bd.n.ua; const desc = bd.desc[currentLang] || bd.desc.ua;
   document.getElementById('icontent').innerHTML=`<div class="ibox"><div class="it">${bd.i} ${name} · Lv${b.lv}</div><div class="ir">⚙️ <strong>${bd.cy}</strong></div><div class="ir">${desc}</div><div class="ibtns"><button class="ibtn ibtn-u" onclick="doUpg(${i})" ${b.lv>=3||S.terra<uc?'disabled':''}>⬆ Lv${b.lv+1} · 💰${uc}</button><button class="ibtn ibtn-d" onclick="doDel(${i})">🗑</button></div></div>`;
 }
-
 function doUpg(i) { const b=S.grid[i]; const uc=Math.floor(50*Math.pow(2,b.lv-1)); if(b.lv>=3){notify(L.maxLvl);return;} if(S.terra<uc){notify('⚠ 💰'+uc);return;} S.terra-=uc; b.lv++; sBuild(); notify(L.upgraded+' Lv'+b.lv); renderRes(); renderInfo(i); }
 function doDel(i) { const ref=Math.floor(B[S.grid[i].t].cost.terra*.5); S.terra+=ref; S.grid[i]=null; S.sel=null; notify(L.demolished+'💰'+ref); renderRes(); sp('build'); renderBuild(); }
 
@@ -395,10 +416,30 @@ function sp(n) {
 function togglePano() { const wrap=document.getElementById('panoWrap'), btn=document.getElementById('panoBtn'); wrap.classList.toggle('hidden'); btn.textContent=wrap.classList.contains('hidden')?'▼':'▲'; }
 function closePanel() { panelOpen=false; document.querySelector('.bottom').classList.remove('open'); document.querySelectorAll('.btab').forEach(t=>t.classList.remove('active')); S.sel=null; }
 
+// ═══════════ CYCLE (З БОНУСАМИ ЕНЕРГІЇ ТА СЕЗОНУ) ═══════════
 setInterval(()=>{ seasonIdx=(seasonIdx+1)%4; season=SEASONS[seasonIdx]; notify(L.seasons[season]); }, 60000);
-function runCycle() { S.cycles++; const mult=S.boost&&Date.now()<S.boostEnd?2:1; S.grid.forEach(b=>{ if(!b) return; const bd=B[b.t]; Object.entries(bd.prod).forEach(([k,v])=>{ if(k!=='rare_seed') { let am=Math.floor(v*b.lv*mult); if(S.autoCollect) am*=2; S[k]=(S[k]||0)+am; if(k==='terra') S.totalTerra+=am; } }); }); renderRes(); checkQuests(); }
+function runCycle() { 
+  S.cycles++; 
+  const mult=S.boost&&Date.now()<S.boostEnd?2:1; 
+  const eb = S.energy >= 2 ? 1.5 : 1; // Бонус енергії
+  const seasonBonus = season === 'spring' ? 1.2 : season === 'winter' ? 0.7 : 1; // Бонус сезону
+  
+  S.grid.forEach(b=>{ 
+    if(!b) return; const bd=B[b.t]; 
+    Object.entries(bd.prod).forEach(([k,v])=>{ 
+      if(k!=='rare_seed') { 
+        let am=Math.floor(v*b.lv*mult*eb*seasonBonus); 
+        if(S.autoCollect) am*=2; 
+        S[k]=(S[k]||0)+am; 
+        if(k==='terra') S.totalTerra+=am; 
+      } 
+    }); 
+  }); 
+  renderRes(); checkQuests(); 
+}
 let cd=5; setInterval(()=>{ cd--; document.getElementById('ct').textContent=cd; if(cd<=0){ cd=5; runCycle(); } }, 1000);
 
+// ═══════════ SHOP & PAYMENTS ═══════════
 async function buyProduct(id) {
   unlockAudio(); sCoin(); if (!tg?.initData) { applyReward(id); return; }
   try { const res = await fetch(`${API_URL}/api/create-invoice`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify({ productId: id }) }); const data = await res.json(); if (data.link) { tg.openInvoice(data.link, (status) => { if (status === "paid") { applyReward(id); } else notify("❌ Скасовано"); }); } else notify("⚠ Помилка"); } catch(e) { notify("⚠ Мережа"); }
@@ -416,6 +457,8 @@ function renderShop() {
     <div class="cv" style="display:flex; justify-content:space-between; align-items:center; padding:12px; margin-bottom:8px;"><div><div class="cvt">🚜 Авто-Фермер (150⭐)</div><div style="font-size:10px;color:#a09060;">Всі доходи x2 назавжди</div></div><button onclick="buyProduct('auto')" style="background:#d09018; color:#000; border:none; padding:8px 12px; border-radius:6px; font-family:'Russo One';">КУПИТИ</button></div>
   `;
 }
+
+// ═══════════ FRIENDS ═══════════
 function renderFriends() {
   const uid = tg?.initDataUnsafe?.user?.id || "123";
   const link = `https://t.me/KhutorEmpireBot?start=ref_${uid}`;
@@ -430,6 +473,7 @@ function renderFriends() {
 }
 function copyRef(link) { navigator.clipboard.writeText(link).then(()=>notify('✅ Лінк скопійовано!')).catch(()=>notify('❌ Помилка')); }
 
+// ═══════════ WHEEL ═══════════
 let isSpinning = false;
 const WHEEL_PRIZES = [ { t: 'terra', v: 100, i: '💰' }, { t: 'seeds', v: 50, i: '🌱' }, { t: 'boost', v: 1, i: '⭐' }, { t: 'terra', v: 500, i: '💰' }, { t: 'food', v: 30, i: '🍞' }, { t: 'rare', v: 1, i: '🌟' }, { t: 'terra', v: 200, i: '💰' }, { t: 'seeds', v: 100, i: '🌱' } ];
 function openWheel() { document.getElementById('wheelModal').classList.add('open'); updateWheelState(); }
@@ -450,6 +494,7 @@ function spinWheel() {
   }, 4200);
 }
 
+// ═══════════ OFFLINE & LEADERBOARD & QUESTS ═══════════
 let offlineReward = 0;
 function checkOffline() {
   const now = Date.now(); const lastSeen = S.lastSeen || now; const diff = now - lastSeen;
@@ -494,6 +539,7 @@ function renderQuests() {
 function claimQuest(qId) { const q = QUESTS.find(x => x.id === qId); if (!q || S.quests.claimed.includes(qId)) return; if ((S.quests[qId] || 0) < q.target) return; S.quests.claimed.push(qId); S.terra += q.reward * 100; S.totalTerra += q.reward * 100; notify(`✅ Нагорода: +${q.reward * 100}💰`); sCoin(); renderQuests(); renderRes(); save(); }
 function checkReferral() { if (!tg?.initDataUnsafe?.start_param) return; const refCode = tg.initDataUnsafe.start_param; if (refCode.startsWith('ref_') && refCode !== `ref_${tg.initDataUnsafe.user?.id}`) { if (!S.refBonus) { S.terra += 500; S.totalTerra += 500; S.refBonus = true; notify("🎁 Бонус: +500💰!"); save(); } } }
 
+// ═══════════ SAVE/LOAD ═══════════
 async function save() {
   if (!tg?.initData) { try { localStorage.setItem('kh6', JSON.stringify(S)); } catch(e) {} return; }
   try { const dataToSave = { terra:S.terra, seeds:S.seeds, fiber:S.fiber, oil:S.oil, food:S.food, population:S.population, energy:S.energy, medicine_base:S.medicine_base, totalTerra:S.totalTerra, cycles:S.cycles, built:S.built, grid:S.grid, rareSeeds:S.rareSeeds, seasonIdx:seasonIdx, lastSpin:S.lastSpin, lastSeen:Date.now(), quests:S.quests, refBonus:S.refBonus, autoCollect:S.autoCollect }; await fetch(`${API_URL}/api/save`, { method: "POST", headers: { "Content-Type": "application/json", "X-Telegram-Init-Data": tg.initData }, body: JSON.stringify(dataToSave) }); } catch(e) {}
@@ -503,6 +549,7 @@ async function load() {
   try { const res = await fetch(`${API_URL}/api/load`, { headers: { "X-Telegram-Init-Data": tg.initData } }); const data = await res.json(); if (data.found) { Object.assign(S, data.data); if(data.data.seasonIdx!==undefined){ seasonIdx=data.data.seasonIdx; season=SEASONS[seasonIdx]; } notify(L.saveOk); } } catch(e) {}
 }
 
+// ═══════════ INIT ═══════════
 window.addEventListener('load', ()=>resize());
 document.addEventListener('touchstart', unlockAudio, {once:true});
 document.addEventListener('click', unlockAudio, {once:true});
